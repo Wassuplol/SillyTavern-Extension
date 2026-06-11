@@ -1,0 +1,554 @@
+<!--
+    Mem's Memories — Settings Panel
+    Fully modular: every tunable value is exposed here.
+    No hardcoded numbers — everything flows from DEFAULT_SETTINGS.
+-->
+
+<div id="mems_memories_settings" class="mems-settings-container">
+
+    <!-- ───── Header ───── -->
+    <div class="mems-settings-header">
+        <h2>🧠 Mem's Memories</h2>
+        <span class="mems-version">v1.0.0</span>
+        <div class="mems-header-actions">
+            <button id="mems_memories_reset" class="mems-btn mems-btn-danger" title="Reset all settings to defaults">↺ Reset</button>
+        </div>
+    </div>
+
+    <div class="mems-settings-body">
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  SUMMARIZATION                                                -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="mems-section">
+            <button class="mems-toggle-section" data-target="mems_section_summarization">
+                <span>📝 Summarization</span>
+                <span class="mems-chevron">▼</span>
+            </button>
+            <div id="mems_section_summarization" class="mems-section-body">
+
+                <label class="mems-label">
+                    <span>Enable Auto-Summarization</span>
+                    <input type="checkbox" data-setting="summarization.enabled"
+                        {{#if settings.summarization.enabled}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Strategy</span>
+                    <select data-setting="summarization.strategy">
+                        <option value="progressive" {{#if (eq settings.summarization.strategy STRATEGIES.PROGRESSIVE)}}selected{{/if}}>Progressive</option>
+                        <option value="hierarchical" {{#if (eq settings.summarization.strategy STRATEGIES.HIERARCHICAL)}}selected{{/if}}>Hierarchical</option>
+                        <option value="hybrid" {{#if (eq settings.summarization.strategy STRATEGIES.HYBRID)}}selected{{/if}}>Hybrid</option>
+                    </select>
+                </label>
+
+                <label class="mems-label" title="How many messages before triggering a summary">
+                    <span>Trigger Interval <em>(messages)</em></span>
+                    <input type="number" data-setting="summarization.triggerInterval"
+                        value="{{settings.summarization.triggerInterval}}" min="1" max="100" step="1">
+                </label>
+
+                <label class="mems-label" title="Target tokens per generated summary">
+                    <span>Max Summary Tokens</span>
+                    <input type="number" data-setting="summarization.maxSummaryTokens"
+                        value="{{settings.summarization.maxSummaryTokens}}" min="50" max="2000" step="10">
+                </label>
+
+                <label class="mems-label" title="How aggressively to compress text (0 = minimal, 1 = maximum)">
+                    <span>Compression Ratio <code>{{settings.summarization.compressionRatio}}</code></span>
+                    <input type="range" data-setting="summarization.compressionRatio"
+                        value="{{settings.summarization.compressionRatio}}" min="0.1" max="0.9" step="0.05">
+                </label>
+
+                <label class="mems-label" title="Most recent N messages weighted higher during summary">
+                    <span>Recency Window <em>(messages)</em></span>
+                    <input type="number" data-setting="summarization.recencyWindow"
+                        value="{{settings.summarization.recencyWindow}}" min="2" max="100" step="1">
+                </label>
+
+                <label class="mems-label" title="Skip messages shorter than this (characters)">
+                    <span>Min Message Length <em>(chars)</em></span>
+                    <input type="number" data-setting="summarization.minMessageLength"
+                        value="{{settings.summarization.minMessageLength}}" min="0" max="500" step="10">
+                </label>
+
+                <label class="mems-label">
+                    <span>Preserve Named Entities</span>
+                    <input type="checkbox" data-setting="summarization.preserveNamedEntities"
+                        {{#if settings.summarization.preserveNamedEntities}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Preserve Direct Quotes</span>
+                    <input type="checkbox" data-setting="summarization.preserveQuotes"
+                        {{#if settings.summarization.preserveQuotes}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Deduplicate Summary Lines</span>
+                    <input type="checkbox" data-setting="summarization.deduplicate"
+                        {{#if settings.summarization.deduplicate}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label mems-label-block">
+                    <span>Summarization Prompt</span>
+                    <textarea data-setting="summarization.summaryPrompt" rows="3">{{settings.summarization.summaryPrompt}}</textarea>
+                </label>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  MEMORY STORE                                                 -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="mems-section">
+            <button class="mems-toggle-section" data-target="mems_section_memory">
+                <span>💾 Memory Store</span>
+                <span class="mems-chevron">▼</span>
+            </button>
+            <div id="mems_section_memory" class="mems-section-body">
+
+                <label class="mems-label" title="Maximum memories to store before pruning">
+                    <span>Max Memories</span>
+                    <input type="number" data-setting="memory.maxMemories"
+                        value="{{settings.memory.maxMemories}}" min="10" max="10000" step="10">
+                </label>
+
+                <label class="mems-label" title="Auto-delete memories older than N days">
+                    <span>Memory Retention <em>(days)</em></span>
+                    <input type="number" data-setting="memory.memoryRetentionDays"
+                        value="{{settings.memory.memoryRetentionDays}}" min="1" max="365" step="1">
+                </label>
+
+                <label class="mems-label" title="Minimum importance score for a memory to be kept (0.0 = keep everything, 1.0 = only critical)">
+                    <span>Importance Threshold <code>{{settings.memory.importanceThreshold}}</code></span>
+                    <input type="range" data-setting="memory.importanceThreshold"
+                        value="{{settings.memory.importanceThreshold}}" min="0" max="1" step="0.05">
+                </label>
+
+                <label class="mems-label" title="Merge semantically similar memories">
+                    <span>Merge Similar Memories</span>
+                    <input type="checkbox" data-setting="memory.mergeSimilar"
+                        {{#if settings.memory.mergeSimilar}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label" title="Similarity threshold for merging (0.0 = merge everything, 1.0 = merge only identical)">
+                    <span>Merge Threshold <code>{{settings.memory.mergeThreshold}}</code></span>
+                    <input type="range" data-setting="memory.mergeThreshold"
+                        value="{{settings.memory.mergeThreshold}}" min="0.5" max="0.95" step="0.05">
+                </label>
+
+                <label class="mems-label">
+                    <span>Memory Format</span>
+                    <select data-setting="memory.memoryFormat">
+                        <option value="bullet" {{#if (eq settings.memory.memoryFormat MEMORY_FORMATS.BULLET)}}selected{{/if}}>Bullet Points</option>
+                        <option value="narrative" {{#if (eq settings.memory.memoryFormat MEMORY_FORMATS.NARRATIVE)}}selected{{/if}}>Narrative</option>
+                        <option value="structured_json" {{#if (eq settings.memory.memoryFormat MEMORY_FORMATS.JSON)}}selected{{/if}}>Structured JSON</option>
+                    </select>
+                </label>
+
+                <label class="mems-label">
+                    <span>Auto-Score Importance</span>
+                    <input type="checkbox" data-setting="memory.generateImportance"
+                        {{#if settings.memory.generateImportance}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label" title="Token cap per stored memory entry">
+                    <span>Max Memory Tokens</span>
+                    <input type="number" data-setting="memory.maxMemoryTokens"
+                        value="{{settings.memory.maxMemoryTokens}}" min="30" max="1000" step="10">
+                </label>
+
+                <label class="mems-label mems-label-block">
+                    <span>Importance Scoring Prompt</span>
+                    <textarea data-setting="memory.importancePrompt" rows="2">{{settings.memory.importancePrompt}}</textarea>
+                </label>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  CONTEXT INJECTION                                            -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="mems-section">
+            <button class="mems-toggle-section" data-target="mems_section_injection">
+                <span>💉 Context Injection</span>
+                <span class="mems-chevron">▼</span>
+            </button>
+            <div id="mems_section_injection" class="mems-section-body">
+
+                <label class="mems-label">
+                    <span>Enable Memory Injection</span>
+                    <input type="checkbox" data-setting="injection.enabled"
+                        {{#if settings.injection.enabled}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Inject Position</span>
+                    <select data-setting="injection.injectPosition">
+                        <option value="before_system" {{#if (eq settings.injection.injectPosition INJECT_POSITIONS.BEFORE_SYSTEM)}}selected{{/if}}>Before System Prompt</option>
+                        <option value="after_system" {{#if (eq settings.injection.injectPosition INJECT_POSITIONS.AFTER_SYSTEM)}}selected{{/if}}>After System Prompt</option>
+                        <option value="before_last_message" {{#if (eq settings.injection.injectPosition INJECT_POSITIONS.BEFORE_LAST)}}selected{{/if}}>Before Last Message</option>
+                        <option value="after_last_message" {{#if (eq settings.injection.injectPosition INJECT_POSITIONS.AFTER_LAST)}}selected{{/if}}>After Last Message</option>
+                    </select>
+                </label>
+
+                <label class="mems-label" title="Max number of memories to inject per request">
+                    <span>Max Injected Memories</span>
+                    <input type="number" data-setting="injection.maxInjectedMemories"
+                        value="{{settings.injection.maxInjectedMemories}}" min="1" max="50" step="1">
+                </label>
+
+                <label class="mems-label" title="Total token budget for the injected memory block">
+                    <span>Injection Token Budget</span>
+                    <input type="number" data-setting="injection.injectionTokenBudget"
+                        value="{{settings.injection.injectionTokenBudget}}" min="50" max="4000" step="50">
+                </label>
+
+                <label class="mems-label">
+                    <span>Sort Memories By</span>
+                    <select data-setting="injection.sortBy">
+                        <option value="importance" {{#if (eq settings.injection.sortBy SORT_MODES.IMPORTANCE)}}selected{{/if}}>Importance</option>
+                        <option value="recency" {{#if (eq settings.injection.sortBy SORT_MODES.RECENCY)}}selected{{/if}}>Recency</option>
+                        <option value="relevance" {{#if (eq settings.injection.sortBy SORT_MODES.RELEVANCE)}}selected{{/if}}>Relevance (hybrid)</option>
+                    </select>
+                </label>
+
+                <label class="mems-label" title="Exponential decay factor for recency (lower = older memories decay faster)">
+                    <span>Recency Decay <code>{{settings.injection.recencyDecay}}</code></span>
+                    <input type="range" data-setting="injection.recencyDecay"
+                        value="{{settings.injection.recencyDecay}}" min="0.5" max="0.99" step="0.01">
+                </label>
+
+                <label class="mems-label">
+                    <span>Boost Current Character's Memories</span>
+                    <input type="checkbox" data-setting="injection.boostCurrentCharacter"
+                        {{#if settings.injection.boostCurrentCharacter}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label mems-label-block">
+                    <span>Injection Template</span>
+                    <textarea data-setting="injection.injectionTemplate" rows="4">{{settings.injection.injectionTemplate}}</textarea>
+                    <small class="mems-hint">{memories} = all memories, {recent} = recent only</small>
+                </label>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  DISPLAY / UI                                                  -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="mems-section">
+            <button class="mems-toggle-section" data-target="mems_section_display">
+                <span>🎨 Display</span>
+                <span class="mems-chevron">▼</span>
+            </button>
+            <div id="mems_section_display" class="mems-section-body">
+
+                <label class="mems-label">
+                    <span>Show Memory Panel</span>
+                    <input type="checkbox" data-setting="display.showMemoryPanel"
+                        {{#if settings.display.showMemoryPanel}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Show Summarization Progress</span>
+                    <input type="checkbox" data-setting="display.showSummarizationProgress"
+                        {{#if settings.display.showSummarizationProgress}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Memory Badge Count</span>
+                    <input type="checkbox" data-setting="display.memoryBadgeCount"
+                        {{#if settings.display.memoryBadgeCount}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Panel Position</span>
+                    <select data-setting="display.panelPosition">
+                        <option value="right" {{#if (eq settings.display.panelPosition "right")}}selected{{/if}}>Right</option>
+                        <option value="left" {{#if (eq settings.display.panelPosition "left")}}selected{{/if}}>Left</option>
+                    </select>
+                </label>
+
+                <label class="mems-label">
+                    <span>Confirm Before Auto-Summary</span>
+                    <input type="checkbox" data-setting="display.confirmBeforeSummary"
+                        {{#if settings.display.confirmBeforeSummary}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Notify On New Memory</span>
+                    <input type="checkbox" data-setting="display.notifyOnNewMemory"
+                        {{#if settings.display.notifyOnNewMemory}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Theme</span>
+                    <select data-setting="display.theme">
+                        <option value="auto" {{#if (eq settings.display.theme "auto")}}selected{{/if}}>Auto</option>
+                        <option value="light" {{#if (eq settings.display.theme "light")}}selected{{/if}}>Light</option>
+                        <option value="dark" {{#if (eq settings.display.theme "dark")}}selected{{/if}}>Dark</option>
+                    </select>
+                </label>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  ADVANCED                                                     -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="mems-section">
+            <button class="mems-toggle-section" data-target="mems_section_advanced">
+                <span>⚙️ Advanced</span>
+                <span class="mems-chevron">▼</span>
+            </button>
+            <div id="mems_section_advanced" class="mems-section-body">
+
+                <label class="mems-label">
+                    <span>Debug Mode</span>
+                    <input type="checkbox" data-setting="advanced.debugMode"
+                        {{#if settings.advanced.debugMode}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label" title="Token overlap between summary chunks">
+                    <span>Chunk Overlap <em>(tokens)</em></span>
+                    <input type="number" data-setting="advanced.chunkOverlap"
+                        value="{{settings.advanced.chunkOverlap}}" min="0" max="200" step="5">
+                </label>
+
+                <label class="mems-label">
+                    <span>Retry On Failure</span>
+                    <input type="checkbox" data-setting="advanced.retryOnFailure"
+                        {{#if settings.advanced.retryOnFailure}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label" title="Max retries if summarization fails">
+                    <span>Max Retries</span>
+                    <input type="number" data-setting="advanced.maxRetries"
+                        value="{{settings.advanced.maxRetries}}" min="0" max="10" step="1">
+                </label>
+
+                <label class="mems-label" title="Minimum seconds between auto-summarizations">
+                    <span>Cooldown <em>(seconds)</em></span>
+                    <input type="number" data-setting="advanced.cooldownSeconds"
+                        value="{{settings.advanced.cooldownSeconds}}" min="5" max="600" step="5">
+                </label>
+
+                <label class="mems-label" title="Messages per summarization batch">
+                    <span>Batch Size <em>(messages)</em></span>
+                    <input type="number" data-setting="advanced.batchSize"
+                        value="{{settings.advanced.batchSize}}" min="5" max="200" step="5">
+                </label>
+
+                <label class="mems-label">
+                    <span>Pre-Summarize Chunking</span>
+                    <input type="checkbox" data-setting="advanced.preSummarizeChunking"
+                        {{#if settings.advanced.preSummarizeChunking}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label" title="Tokens per chunk for pre-summarization splitting">
+                    <span>Chunk Token Size</span>
+                    <input type="number" data-setting="advanced.chunkTokenSize"
+                        value="{{settings.advanced.chunkTokenSize}}" min="100" max="4000" step="50">
+                </label>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  RAG (Retrieval-Augmented Generation)                         -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="mems-section">
+            <button class="mems-toggle-section" data-target="mems_section_rag">
+                <span>🔮 RAG (Vector Memory)</span>
+                <span class="mems-chevron">▼</span>
+            </button>
+            <div id="mems_section_rag" class="mems-section-body">
+
+                <div class="mems-callout mems-callout-info">
+                    <strong>⚡ RAG</strong> enables semantic search over your memories using a vector database.
+                    Requires a running <strong>Qdrant</strong> instance and an embedding provider (Ollama, OpenAI, or custom).
+                </div>
+
+                <label class="mems-label">
+                    <span>Enable RAG <em>(Vector Search)</em></span>
+                    <input type="checkbox" data-setting="rag.enabled"
+                        {{#if settings.rag.enabled}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label">
+                    <span>Vector Database</span>
+                    <select data-setting="rag.vectorProvider">
+                        <option value="qdrant" {{#if (eq settings.rag.vectorProvider RAG_PROVIDERS.QDRANT)}}selected{{/if}}>Qdrant</option>
+                        <option value="chroma" {{#if (eq settings.rag.vectorProvider RAG_PROVIDERS.CHROMA)}}selected{{/if}}>Chroma (coming soon)</option>
+                    </select>
+                </label>
+
+                <fieldset class="mems-fieldset">
+                    <legend>🔗 Qdrant Connection</legend>
+
+                    <label class="mems-label" title="Qdrant server URL">
+                        <span>Qdrant URL</span>
+                        <input type="text" data-setting="rag.qdrantUrl"
+                            value="{{settings.rag.qdrantUrl}}" placeholder="http://localhost:6333">
+                    </label>
+
+                    <label class="mems-label" title="Collection name in Qdrant">
+                        <span>Collection Name</span>
+                        <input type="text" data-setting="rag.qdrantCollection"
+                            value="{{settings.rag.qdrantCollection}}" placeholder="mems_memories">
+                    </label>
+
+                    <label class="mems-label" title="Leave empty if Qdrant runs without auth">
+                        <span>API Key <em>(optional)</em></span>
+                        <input type="password" data-setting="rag.qdrantApiKey"
+                            value="{{settings.rag.qdrantApiKey}}" placeholder="(no auth)">
+                    </label>
+
+                    <label class="mems-label" title="Must match your embedding model's output dimension. E.g., qwen3-embedding:8b = 768, text-embedding-3-small = 1536, nomic-embed-text = 768">
+                        <span>Vector Dimension</span>
+                        <input type="number" data-setting="rag.vectorDimension"
+                            value="{{settings.rag.vectorDimension}}" min="256" max="4096" step="64">
+                    </label>
+                </fieldset>
+
+                <fieldset class="mems-fieldset">
+                    <legend>🧬 Embedding Provider</legend>
+
+                    <label class="mems-label">
+                        <span>Provider</span>
+                        <select data-setting="rag.embeddingProvider">
+                            <option value="ollama" {{#if (eq settings.rag.embeddingProvider EMBEDDING_PROVIDERS.OLLAMA)}}selected{{/if}}>Ollama (local)</option>
+                            <option value="openai" {{#if (eq settings.rag.embeddingProvider EMBEDDING_PROVIDERS.OPENAI)}}selected{{/if}}>OpenAI / Compatible</option>
+                            <option value="custom" {{#if (eq settings.rag.embeddingProvider EMBEDDING_PROVIDERS.CUSTOM)}}selected{{/if}}>Custom Endpoint</option>
+                        </select>
+                    </label>
+
+                    <!-- Ollama -->
+                    <div class="mems-conditional" data-show-when="rag.embeddingProvider" data-show-eq="ollama">
+                        <label class="mems-label">
+                            <span>Ollama Endpoint</span>
+                            <input type="text" data-setting="rag.ollamaEndpoint"
+                                value="{{settings.rag.ollamaEndpoint}}" placeholder="http://localhost:11434">
+                        </label>
+                        <label class="mems-label">
+                            <span>Embedding Model</span>
+                            <input type="text" data-setting="rag.ollamaEmbeddingModel"
+                                value="{{settings.rag.ollamaEmbeddingModel}}" placeholder="qwen3-embedding:8b">
+                        </label>
+                    </div>
+
+                    <!-- OpenAI -->
+                    <div class="mems-conditional" data-show-when="rag.embeddingProvider" data-show-eq="openai">
+                        <label class="mems-label">
+                            <span>Base URL</span>
+                            <input type="text" data-setting="rag.openaiBaseUrl"
+                                value="{{settings.rag.openaiBaseUrl}}" placeholder="https://api.openai.com/v1">
+                        </label>
+                        <label class="mems-label">
+                            <span>Model</span>
+                            <input type="text" data-setting="rag.openaiEmbeddingModel"
+                                value="{{settings.rag.openaiEmbeddingModel}}" placeholder="text-embedding-3-small">
+                        </label>
+                        <label class="mems-label">
+                            <span>API Key</span>
+                            <input type="password" data-setting="rag.openaiApiKey"
+                                value="{{settings.rag.openaiApiKey}}" placeholder="sk-...">
+                        </label>
+                    </div>
+
+                    <!-- Custom -->
+                    <div class="mems-conditional" data-show-when="rag.embeddingProvider" data-show-eq="custom">
+                        <label class="mems-label">
+                            <span>Endpoint URL</span>
+                            <input type="text" data-setting="rag.customEmbeddingEndpoint"
+                                value="{{settings.rag.customEmbeddingEndpoint}}" placeholder="http://localhost:8080/embed">
+                        </label>
+                        <label class="mems-label">
+                            <span>Model Name <em>(optional)</em></span>
+                            <input type="text" data-setting="rag.customEmbeddingModel"
+                                value="{{settings.rag.customEmbeddingModel}}" placeholder="my-model">
+                        </label>
+                        <label class="mems-label">
+                            <span>API Key <em>(optional)</em></span>
+                            <input type="password" data-setting="rag.customEmbeddingApiKey"
+                                value="{{settings.rag.customEmbeddingApiKey}}" placeholder="(if needed)">
+                        </label>
+                    </div>
+                </fieldset>
+
+                <fieldset class="mems-fieldset">
+                    <legend>🎯 Retrieval Tuning</legend>
+
+                    <label class="mems-label" title="Only memories with similarity score above this are retrieved (0 = everything, 1 = exact match)">
+                        <span>Similarity Threshold <code>{{settings.rag.similarityThreshold}}</code></span>
+                        <input type="range" data-setting="rag.similarityThreshold"
+                            value="{{settings.rag.similarityThreshold}}" min="0.3" max="0.95" step="0.05">
+                    </label>
+
+                    <label class="mems-label" title="Number of semantically similar memories to retrieve">
+                        <span>Top-K</span>
+                        <input type="number" data-setting="rag.topK"
+                            value="{{settings.rag.topK}}" min="1" max="50" step="1">
+                    </label>
+
+                    <label class="mems-label">
+                        <span>Hybrid Search <em>(vector + keyword)</em></span>
+                        <input type="checkbox" data-setting="rag.hybridSearch"
+                            {{#if settings.rag.hybridSearch}}checked{{/if}}>
+                    </label>
+
+                    <label class="mems-label" title="Weight of keyword match in hybrid mode (0 = pure vector, 1 = pure keyword)">
+                        <span>Keyword Weight <code>{{settings.rag.hybridKeywordWeight}}</code></span>
+                        <input type="range" data-setting="rag.hybridKeywordWeight"
+                            value="{{settings.rag.hybridKeywordWeight}}" min="0" max="1" step="0.1">
+                    </label>
+                </fieldset>
+
+                <fieldset class="mems-fieldset">
+                    <legend>📦 Indexing</legend>
+
+                    <label class="mems-label">
+                        <span>Auto-Index On Summarize</span>
+                        <input type="checkbox" data-setting="rag.indexOnSummarize"
+                            {{#if settings.rag.indexOnSummarize}}checked{{/if}}>
+                    </label>
+
+                    <label class="mems-label" title="How many memories to re-index in one batch">
+                        <span>Batch Index Size</span>
+                        <input type="number" data-setting="rag.batchIndexSize"
+                            value="{{settings.rag.batchIndexSize}}" min="1" max="200" step="5">
+                    </label>
+
+                    <label class="mems-label" title="Timeout in milliseconds for embedding API calls">
+                        <span>Embedding Timeout <em>(ms)</em></span>
+                        <input type="number" data-setting="rag.embeddingTimeout"
+                            value="{{settings.rag.embeddingTimeout}}" min="1000" max="60000" step="1000">
+                    </label>
+
+                    <label class="mems-label">
+                        <span>Retry On Embedding Failure</span>
+                        <input type="checkbox" data-setting="rag.retryEmbedding"
+                            {{#if settings.rag.retryEmbedding}}checked{{/if}}>
+                    </label>
+
+                    <label class="mems-label" title="Max retries for embedding API">
+                        <span>Max Embedding Retries</span>
+                        <input type="number" data-setting="rag.maxEmbeddingRetries"
+                            value="{{settings.rag.maxEmbeddingRetries}}" min="1" max="10" step="1">
+                    </label>
+                </fieldset>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ───── Footer Actions ───── -->
+    <div class="mems-settings-footer">
+        <button id="mems_memories_summarize_now" class="mems-btn mems-btn-primary">⚡ Summarize Now</button>
+        <button id="mems_memories_clear_memories" class="mems-btn mems-btn-warning">🗑 Clear Chat Memories</button>
+    </div>
+
+</div>

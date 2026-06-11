@@ -1,0 +1,17 @@
+{
+    "display_name": "Mem's Memories",
+    "loading_order": 5,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "Mem",
+    "version": "1.0.0",
+    "homePage": "",
+    "auto_update": false,
+    "hooks": {
+        "enable": "onEnable",
+        "disable": "onDisable",
+        "activate": "onActivate"
+    }
+}

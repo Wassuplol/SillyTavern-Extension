@@ -1,0 +1,650 @@
+/**
+ * Mem's Memories — Extension Styles
+ * Covers: Settings panel, Memory side-panel, toast notifications
+ */
+
+/* ================================================================== */
+/*  CSS VARIABLES (themeable)                                          */
+/* ================================================================== */
+:root {
+    --mems-primary: #6c5ce7;
+    --mems-primary-hover: #5a4bd1;
+    --mems-primary-soft: rgba(108, 92, 231, 0.12);
+    --mems-accent: #00cec9;
+    --mems-danger: #e74c3c;
+    --mems-danger-hover: #c0392b;
+    --mems-warning: #f39c12;
+    --mems-warning-hover: #d68910;
+    --mems-success: #27ae60;
+    --mems-bg: rgba(20, 20, 30, 0.96);
+    --mems-bg-elevated: rgba(30, 30, 42, 0.98);
+    --mems-border: rgba(255, 255, 255, 0.08);
+    --mems-border-hover: rgba(255, 255, 255, 0.15);
+    --mems-text: #e0e0e0;
+    --mems-text-dim: #888;
+    --mems-text-bright: #fff;
+    --mems-radius: 10px;
+    --mems-radius-sm: 6px;
+    --mems-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --mems-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mems-transition: 180ms ease;
+}
+
+/* ================================================================== */
+/*  SETTINGS PANEL                                                     */
+/* ================================================================== */
+#mems_memories_settings {
+    font-family: var(--mems-font);
+    color: var(--mems-text);
+    background: var(--mems-bg);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius);
+    margin: 10px 0;
+    overflow: hidden;
+    box-shadow: var(--mems-shadow);
+}
+
+/* Header */
+.mems-settings-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.18), rgba(0, 206, 201, 0.08));
+    border-bottom: 1px solid var(--mems-border);
+}
+
+.mems-settings-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--mems-text-bright);
+    flex: 1;
+}
+
+.mems-version {
+    font-size: 11px;
+    color: var(--mems-text-dim);
+    background: var(--mems-primary-soft);
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.mems-header-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Body */
+.mems-settings-body {
+    padding: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Section toggles */
+.mems-section {
+    border-bottom: 1px solid var(--mems-border);
+}
+
+.mems-section:last-child {
+    border-bottom: none;
+}
+
+.mems-toggle-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 20px;
+    background: none;
+    border: none;
+    color: var(--mems-text-bright);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--mems-font);
+    transition: background var(--mems-transition);
+}
+
+.mems-toggle-section:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.mems-toggle-section.collapsed .mems-chevron {
+    transform: rotate(-90deg);
+}
+
+.mems-chevron {
+    font-size: 11px;
+    color: var(--mems-text-dim);
+    transition: transform var(--mems-transition);
+}
+
+.mems-section-body {
+    padding: 8px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Labels & inputs */
+.mems-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--mems-text);
+    min-height: 32px;
+}
+
+.mems-label-block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.mems-label > span:first-child {
+    flex-shrink: 0;
+    font-weight: 500;
+}
+
+.mems-label em {
+    font-style: normal;
+    font-size: 11px;
+    color: var(--mems-text-dim);
+}
+
+.mems-label code {
+    font-size: 12px;
+    background: var(--mems-primary-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--mems-accent);
+}
+
+/* Inputs */
+.mems-label input[type="number"] {
+    width: 90px;
+    padding: 6px 10px;
+    background: var(--mems-bg-elevated);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-sm);
+    color: var(--mems-text-bright);
+    font-size: 13px;
+    font-family: var(--mems-font);
+    text-align: right;
+    transition: border-color var(--mems-transition);
+}
+
+.mems-label input[type="number"]:focus {
+    outline: none;
+    border-color: var(--mems-primary);
+    box-shadow: 0 0 0 2px var(--mems-primary-soft);
+}
+
+.mems-label input[type="range"] {
+    flex: 1;
+    max-width: 160px;
+    accent-color: var(--mems-primary);
+    height: 6px;
+}
+
+.mems-label input[type="checkbox"] {
+    accent-color: var(--mems-primary);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.mems-label select {
+    padding: 6px 10px;
+    background: var(--mems-bg-elevated);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-sm);
+    color: var(--mems-text-bright);
+    font-size: 13px;
+    font-family: var(--mems-font);
+    cursor: pointer;
+    min-width: 150px;
+    transition: border-color var(--mems-transition);
+}
+
+.mems-label select:focus {
+    outline: none;
+    border-color: var(--mems-primary);
+}
+
+.mems-label textarea {
+    width: 100%;
+    padding: 10px;
+    background: var(--mems-bg-elevated);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-sm);
+    color: var(--mems-text-bright);
+    font-size: 12px;
+    font-family: var(--mems-font);
+    resize: vertical;
+    transition: border-color var(--mems-transition);
+    box-sizing: border-box;
+}
+
+.mems-label textarea:focus {
+    outline: none;
+    border-color: var(--mems-primary);
+    box-shadow: 0 0 0 2px var(--mems-primary-soft);
+}
+
+.mems-hint {
+    font-size: 11px;
+    color: var(--mems-text-dim);
+    margin-top: -4px;
+}
+
+/* Buttons */
+.mems-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--mems-radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--mems-font);
+    cursor: pointer;
+    transition: all var(--mems-transition);
+}
+
+.mems-btn-primary {
+    background: var(--mems-primary);
+    color: #fff;
+}
+
+.mems-btn-primary:hover {
+    background: var(--mems-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+}
+
+.mems-btn-danger {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--mems-danger);
+    border: 1px solid transparent;
+}
+
+.mems-btn-danger:hover {
+    background: var(--mems-danger);
+    color: #fff;
+}
+
+.mems-btn-warning {
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--mems-warning);
+    border: 1px solid transparent;
+}
+
+.mems-btn-warning:hover {
+    background: var(--mems-warning);
+    color: #fff;
+}
+
+/* Footer */
+.mems-settings-footer {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--mems-border);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* ================================================================== */
+/*  MEMORY SIDE PANEL                                                  */
+/* ================================================================== */
+.mems-panel {
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    width: 340px;
+    z-index: 9000;
+    background: var(--mems-bg);
+    border: 1px solid var(--mems-border);
+    box-shadow: var(--mems-shadow);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--mems-font);
+    transition: transform var(--mems-transition);
+}
+
+.mems-panel-right {
+    right: 0;
+    border-radius: var(--mems-radius) 0 0 var(--mems-radius);
+}
+
+.mems-panel-left {
+    left: 0;
+    border-radius: 0 var(--mems-radius) var(--mems-radius) 0;
+}
+
+/* Panel header */
+.mems-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(0, 206, 201, 0.06));
+    border-bottom: 1px solid var(--mems-border);
+    flex-shrink: 0;
+}
+
+.mems-panel-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--mems-text-bright);
+}
+
+.mems-badge {
+    background: var(--mems-primary);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 11px;
+    padding: 0 6px;
+}
+
+.mems-btn-icon {
+    background: none;
+    border: none;
+    color: var(--mems-text-dim);
+    font-size: 16px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--mems-transition);
+}
+
+.mems-btn-icon:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--mems-text-bright);
+}
+
+/* Panel body */
+.mems-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+/* Memory list */
+.mems-memory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mems-memory-item {
+    background: var(--mems-bg-elevated);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-sm);
+    padding: 10px;
+    cursor: default;
+    transition: border-color var(--mems-transition), background var(--mems-transition);
+}
+
+.mems-memory-item:hover {
+    border-color: var(--mems-border-hover);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.mems-memory-score {
+    font-size: 10px;
+    color: var(--mems-warning);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    opacity: calc(0.3 + var(--score, 0.5) * 0.7);
+}
+
+.mems-memory-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--mems-text);
+    word-break: break-word;
+}
+
+.mems-memory-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--mems-text-dim);
+}
+
+.mems-btn-delete {
+    background: none;
+    border: none;
+    color: var(--mems-text-dim);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: all var(--mems-transition);
+}
+
+.mems-btn-delete:hover {
+    background: rgba(231, 76, 60, 0.2);
+    color: var(--mems-danger);
+}
+
+.mems-empty {
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 13px;
+    color: var(--mems-text-dim);
+    font-style: italic;
+}
+
+/* Panel footer */
+.mems-panel-footer {
+    padding: 8px 14px;
+    border-top: 1px solid var(--mems-border);
+    flex-shrink: 0;
+}
+
+.mems-search {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--mems-bg-elevated);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-sm);
+    color: var(--mems-text-bright);
+    font-size: 12px;
+    font-family: var(--mems-font);
+    box-sizing: border-box;
+    transition: border-color var(--mems-transition);
+}
+
+.mems-search:focus {
+    outline: none;
+    border-color: var(--mems-primary);
+}
+
+.mems-search::placeholder {
+    color: var(--mems-text-dim);
+}
+
+/* ================================================================== */
+/*  RESPONSIVE                                                         */
+/* ================================================================== */
+@media (max-width: 768px) {
+    .mems-panel {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .mems-settings-body {
+        max-height: 50vh;
+    }
+
+    .mems-label {
+        flex-wrap: wrap;
+    }
+
+    .mems-label input[type="number"] {
+        width: 70px;
+    }
+
+    .mems-label input[type="range"] {
+        max-width: 100px;
+    }
+}
+
+/* ================================================================== */
+/*  SCROLLBAR STYLING                                                  */
+/* ================================================================== */
+.mems-settings-body::-webkit-scrollbar,
+.mems-panel-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mems-settings-body::-webkit-scrollbar-track,
+.mems-panel-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.mems-settings-body::-webkit-scrollbar-thumb,
+.mems-panel-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.mems-settings-body::-webkit-scrollbar-thumb:hover,
+.mems-panel-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ================================================================== */
+/*  LOADING / ACTIVE STATES                                             */
+/* ================================================================== */
+.mems-summarizing {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.mems-pulse {
+    animation: mems-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes mems-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ================================================================== */
+/*  FADE-IN ANIMATION                                                  */
+/* ================================================================== */
+@keyframes mems-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.mems-memory-item {
+    animation: mems-fade-in 0.25s ease-out;
+}
+
+/* ================================================================== */
+/*  CALL OUT  /  INFO BANNER                                            */
+/* ================================================================== */
+.mems-callout {
+    padding: 10px 14px;
+    border-radius: var(--mems-radius-sm);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.mems-callout-info {
+    background: rgba(0, 206, 201, 0.08);
+    border: 1px solid rgba(0, 206, 201, 0.2);
+    color: var(--mems-accent);
+}
+
+.mems-callout-warning {
+    background: rgba(243, 156, 18, 0.08);
+    border: 1px solid rgba(243, 156, 18, 0.2);
+    color: var(--mems-warning);
+}
+
+.mems-callout-danger {
+    background: rgba(231, 76, 60, 0.08);
+    border: 1px solid rgba(231, 76, 60, 0.2);
+    color: var(--mems-danger);
+}
+
+/* ================================================================== */
+/*  FIELDSETS  (grouped settings)                                       */
+/* ================================================================== */
+.mems-fieldset {
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-sm);
+    padding: 12px 14px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mems-fieldset legend {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--mems-text-dim);
+    padding: 0 6px;
+}
+
+/* ================================================================== */
+/*  CONDITIONAL BLOCKS  (show/hide based on select value)               */
+/* ================================================================== */
+.mems-conditional {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 8px;
+    border-left: 2px solid var(--mems-primary-soft);
+}
+
+.mems-conditional.visible {
+    display: flex;
+}
+
+/* ================================================================== */
+/*  TEXT / PASSWORD INPUTS                                              */
+/* ================================================================== */
+.mems-label input[type="text"],
+.mems-label input[type="password"] {
+    flex: 1;
+    max-width: 300px;
+    padding: 6px 10px;
+    background: var(--mems-bg-elevated);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-sm);
+    color: var(--mems-text-bright);
+    font-size: 13px;
+    font-family: var(--mems-font);
+    transition: border-color var(--mems-transition);
+}
+
+.mems-label input[type="text"]:focus,
+.mems-label input[type="password"]:focus {
+    outline: none;
+    border-color: var(--mems-primary);
+    box-shadow: 0 0 0 2px var(--mems-primary-soft);
+}
