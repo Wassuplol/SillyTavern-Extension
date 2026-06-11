@@ -1335,18 +1335,41 @@ class MemsMemoriesExtension {
         const { renderExtensionTemplateAsync } = this._ctx;
         if (!renderExtensionTemplateAsync) return;
 
+        // Pre-compute boolean flags so settings.html can use simple {{#if flag}} checks.
+        // This avoids Handlebars subexpressions like (eq a b) which SillyTavern doesn't register.
+        const s = this.settings.getAll();
+
+        const templateVars = {
+            settings: s,
+            isStrategyProgressive:  s.summarization.strategy === STRATEGIES.PROGRESSIVE,
+            isStrategyHierarchical: s.summarization.strategy === STRATEGIES.HIERARCHICAL,
+            isStrategyHybrid:       s.summarization.strategy === STRATEGIES.HYBRID,
+            isFormatBullet:    s.memory.memoryFormat === MEMORY_FORMATS.BULLET,
+            isFormatNarrative: s.memory.memoryFormat === MEMORY_FORMATS.NARRATIVE,
+            isFormatJson:      s.memory.memoryFormat === MEMORY_FORMATS.JSON,
+            isPositionBeforeSystem: s.injection.injectPosition === INJECT_POSITIONS.BEFORE_SYSTEM,
+            isPositionAfterSystem:  s.injection.injectPosition === INJECT_POSITIONS.AFTER_SYSTEM,
+            isPositionBeforeLast:   s.injection.injectPosition === INJECT_POSITIONS.BEFORE_LAST,
+            isPositionAfterLast:    s.injection.injectPosition === INJECT_POSITIONS.AFTER_LAST,
+            isSortImportance: s.injection.sortBy === SORT_MODES.IMPORTANCE,
+            isSortRecency:    s.injection.sortBy === SORT_MODES.RECENCY,
+            isSortRelevance:  s.injection.sortBy === SORT_MODES.RELEVANCE,
+            isPanelRight: s.display.panelPosition === 'right',
+            isPanelLeft:  s.display.panelPosition === 'left',
+            isThemeAuto:  s.display.theme === 'auto',
+            isThemeLight: s.display.theme === 'light',
+            isThemeDark:  s.display.theme === 'dark',
+            isRagQdrant: s.rag.vectorProvider === RAG_PROVIDERS.QDRANT,
+            isRagChroma: s.rag.vectorProvider === RAG_PROVIDERS.CHROMA,
+            isEmbedOllama: s.rag.embeddingProvider === EMBEDDING_PROVIDERS.OLLAMA,
+            isEmbedOpenai: s.rag.embeddingProvider === EMBEDDING_PROVIDERS.OPENAI,
+            isEmbedCustom: s.rag.embeddingProvider === EMBEDDING_PROVIDERS.CUSTOM,
+        };
+
         const settingsHtml = await renderExtensionTemplateAsync(
             'third-party/MemsMemories',
             'settings',
-            {
-                settings: this.settings.getAll(),
-                STRATEGIES,
-                INJECT_POSITIONS,
-                SORT_MODES,
-                MEMORY_FORMATS,
-                RAG_PROVIDERS,
-                EMBEDDING_PROVIDERS,
-            }
+            templateVars
         );
 
         const $container = $('#extensions_settings2');

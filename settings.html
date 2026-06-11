@@ -36,9 +36,9 @@
                 <label class="mems-label">
                     <span>Strategy</span>
                     <select data-setting="summarization.strategy">
-                        <option value="progressive" {{#if (eq settings.summarization.strategy STRATEGIES.PROGRESSIVE)}}selected{{/if}}>Progressive</option>
-                        <option value="hierarchical" {{#if (eq settings.summarization.strategy STRATEGIES.HIERARCHICAL)}}selected{{/if}}>Hierarchical</option>
-                        <option value="hybrid" {{#if (eq settings.summarization.strategy STRATEGIES.HYBRID)}}selected{{/if}}>Hybrid</option>
+                        <option value="progressive" {{#if isStrategyProgressive}}selected{{/if}}>Progressive</option>
+                        <option value="hierarchical" {{#if isStrategyHierarchical}}selected{{/if}}>Hierarchical</option>
+                        <option value="hybrid" {{#if isStrategyHybrid}}selected{{/if}}>Hybrid</option>
                     </select>
                 </label>
 
@@ -141,9 +141,9 @@
                 <label class="mems-label">
                     <span>Memory Format</span>
                     <select data-setting="memory.memoryFormat">
-                        <option value="bullet" {{#if (eq settings.memory.memoryFormat MEMORY_FORMATS.BULLET)}}selected{{/if}}>Bullet Points</option>
-                        <option value="narrative" {{#if (eq settings.memory.memoryFormat MEMORY_FORMATS.NARRATIVE)}}selected{{/if}}>Narrative</option>
-                        <option value="structured_json" {{#if (eq settings.memory.memoryFormat MEMORY_FORMATS.JSON)}}selected{{/if}}>Structured JSON</option>
+                        <option value="bullet" {{#if isFormatBullet}}selected{{/if}}>Bullet Points</option>
+                        <option value="narrative" {{#if isFormatNarrative}}selected{{/if}}>Narrative</option>
+                        <option value="structured_json" {{#if isFormatJson}}selected{{/if}}>Structured JSON</option>
                     </select>
                 </label>
 
@@ -186,10 +186,10 @@
                 <label class="mems-label">
                     <span>Inject Position</span>
                     <select data-setting="injection.injectPosition">
-                        <option value="before_system" {{#if (eq settings.injection.injectPosition INJECT_POSITIONS.BEFORE_SYSTEM)}}selected{{/if}}>Before System Prompt</option>
-                        <option value="after_system" {{#if (eq settings.injection.injectPosition INJECT_POSITIONS.AFTER_SYSTEM)}}selected{{/if}}>After System Prompt</option>
-                        <option value="before_last_message" {{#if (eq settings.injection.injectPosition INJECT_POSITIONS.BEFORE_LAST)}}selected{{/if}}>Before Last Message</option>
-                        <option value="after_last_message" {{#if (eq settings.injection.injectPosition INJECT_POSITIONS.AFTER_LAST)}}selected{{/if}}>After Last Message</option>
+                        <option value="before_system" {{#if isPositionBeforeSystem}}selected{{/if}}>Before System Prompt</option>
+                        <option value="after_system" {{#if isPositionAfterSystem}}selected{{/if}}>After System Prompt</option>
+                        <option value="before_last_message" {{#if isPositionBeforeLast}}selected{{/if}}>Before Last Message</option>
+                        <option value="after_last_message" {{#if isPositionAfterLast}}selected{{/if}}>After Last Message</option>
                     </select>
                 </label>
 
@@ -208,9 +208,9 @@
                 <label class="mems-label">
                     <span>Sort Memories By</span>
                     <select data-setting="injection.sortBy">
-                        <option value="importance" {{#if (eq settings.injection.sortBy SORT_MODES.IMPORTANCE)}}selected{{/if}}>Importance</option>
-                        <option value="recency" {{#if (eq settings.injection.sortBy SORT_MODES.RECENCY)}}selected{{/if}}>Recency</option>
-                        <option value="relevance" {{#if (eq settings.injection.sortBy SORT_MODES.RELEVANCE)}}selected{{/if}}>Relevance (hybrid)</option>
+                        <option value="importance" {{#if isSortImportance}}selected{{/if}}>Importance</option>
+                        <option value="recency" {{#if isSortRecency}}selected{{/if}}>Recency</option>
+                        <option value="relevance" {{#if isSortRelevance}}selected{{/if}}>Relevance (hybrid)</option>
                     </select>
                 </label>
 
@@ -266,8 +266,8 @@
                 <label class="mems-label">
                     <span>Panel Position</span>
                     <select data-setting="display.panelPosition">
-                        <option value="right" {{#if (eq settings.display.panelPosition "right")}}selected{{/if}}>Right</option>
-                        <option value="left" {{#if (eq settings.display.panelPosition "left")}}selected{{/if}}>Left</option>
+                        <option value="right" {{#if isPanelRight}}selected{{/if}}>Right</option>
+                        <option value="left" {{#if isPanelLeft}}selected{{/if}}>Left</option>
                     </select>
                 </label>
 
@@ -286,9 +286,9 @@
                 <label class="mems-label">
                     <span>Theme</span>
                     <select data-setting="display.theme">
-                        <option value="auto" {{#if (eq settings.display.theme "auto")}}selected{{/if}}>Auto</option>
-                        <option value="light" {{#if (eq settings.display.theme "light")}}selected{{/if}}>Light</option>
-                        <option value="dark" {{#if (eq settings.display.theme "dark")}}selected{{/if}}>Dark</option>
+                        <option value="auto" {{#if isThemeAuto}}selected{{/if}}>Auto</option>
+                        <option value="light" {{#if isThemeLight}}selected{{/if}}>Light</option>
+                        <option value="dark" {{#if isThemeDark}}selected{{/if}}>Dark</option>
                     </select>
                 </label>
 
@@ -380,8 +380,8 @@
                 <label class="mems-label">
                     <span>Vector Database</span>
                     <select data-setting="rag.vectorProvider">
-                        <option value="qdrant" {{#if (eq settings.rag.vectorProvider RAG_PROVIDERS.QDRANT)}}selected{{/if}}>Qdrant</option>
-                        <option value="chroma" {{#if (eq settings.rag.vectorProvider RAG_PROVIDERS.CHROMA)}}selected{{/if}}>Chroma (coming soon)</option>
+                        <option value="qdrant" {{#if isRagQdrant}}selected{{/if}}>Qdrant</option>
+                        <option value="chroma" {{#if isRagChroma}}selected{{/if}}>Chroma (coming soon)</option>
                     </select>
                 </label>
 
@@ -419,9 +419,9 @@
                     <label class="mems-label">
                         <span>Provider</span>
                         <select data-setting="rag.embeddingProvider">
-                            <option value="ollama" {{#if (eq settings.rag.embeddingProvider EMBEDDING_PROVIDERS.OLLAMA)}}selected{{/if}}>Ollama (local)</option>
-                            <option value="openai" {{#if (eq settings.rag.embeddingProvider EMBEDDING_PROVIDERS.OPENAI)}}selected{{/if}}>OpenAI / Compatible</option>
-                            <option value="custom" {{#if (eq settings.rag.embeddingProvider EMBEDDING_PROVIDERS.CUSTOM)}}selected{{/if}}>Custom Endpoint</option>
+                            <option value="ollama" {{#if isEmbedOllama}}selected{{/if}}>Ollama (local)</option>
+                            <option value="openai" {{#if isEmbedOpenai}}selected{{/if}}>OpenAI / Compatible</option>
+                            <option value="custom" {{#if isEmbedCustom}}selected{{/if}}>Custom Endpoint</option>
                         </select>
                     </label>
 
