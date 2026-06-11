@@ -1416,7 +1416,17 @@ class MemsMemoriesExtension {
                 value = $(this).val();
             }
             self.settings.set(path, value);
+            // Update range value display
+            if ($(this).attr('type') === 'range') {
+                const $valSpan = $(this).closest('.mems-range-group').find('.mems-range-value');
+                if ($valSpan.length) $valSpan.text(value);
+            }
+            // Re-evaluate conditional blocks
+            self._updateConditionals($(this));
         });
+
+        // Initial conditional evaluation
+        this._updateAllConditionals();
 
         // Reset button
         $('#mems_memories_reset').on('click', () => {
@@ -1429,6 +1439,9 @@ class MemsMemoriesExtension {
         // Force summarize button
         $('#mems_memories_summarize_now').on('click', async () => {
             await self.summarizer.summarizeIfNeeded();
+            if (self.settings.get('display.notifyOnNewMemory')) {
+                self._showToast('Summarization triggered');
+            }
         });
 
         // Clear memories button
@@ -1438,6 +1451,46 @@ class MemsMemoriesExtension {
                 self.summarizer.reset();
                 self._refreshMemoryPanel();
             }
+        });
+    }
+
+    /**
+     * Update all conditional blocks based on current settings.
+     * A conditional block has:
+     *   data-show-when="rag.embeddingProvider" data-show-eq="ollama"
+     * It becomes visible when the named setting equals the named value.
+     */
+    _updateAllConditionals() {
+        const self = this;
+        $('#mems_memories_settings .mems-conditional').each(function () {
+            const $el = $(this);
+            const whenPath = $el.data('show-when');
+            const eqValue = $el.data('show-eq');
+            if (!whenPath) return;
+            const current = self.settings.get(whenPath);
+            const shouldShow = String(current) === String(eqValue);
+            $el.toggleClass('visible', shouldShow);
+        });
+
+        // Also: show/hide entire sections based on parent toggles
+        // (e.g. enable RAG shows the RAG section body)
+        const ragEnabled = this.settings.get('rag.enabled');
+        $('#mems_section_rag').toggleClass('visible', true); // body always shown; could add master toggle
+    }
+
+    /** Update conditionals that depend on a specific input */
+    _updateConditionals($changed) {
+        const changedPath = $changed.data('setting');
+        if (!changedPath) return;
+        const self = this;
+        $('#mems_memories_settings .mems-conditional').each(function () {
+            const $el = $(this);
+            const whenPath = $el.data('show-when');
+            if (whenPath !== changedPath) return;
+            const eqValue = $el.data('show-eq');
+            const current = self.settings.get(whenPath);
+            const shouldShow = String(current) === String(eqValue);
+            $el.toggleClass('visible', shouldShow);
         });
     }
 
@@ -1500,6 +1553,7 @@ class MemsMemoriesExtension {
         // ── Drag to move ──
         this._setupPanelDrag();
 
+        const self = this;
         let searchTimeout;
         $('#mems_search_input').on('input', function () {
             clearTimeout(searchTimeout);
