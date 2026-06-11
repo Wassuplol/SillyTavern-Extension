@@ -527,6 +527,117 @@ input[type="number"]:focus {
 }
 
 /* ================================================================== */
+/*  UTILITY  (show/hide)                                              */
+/* ================================================================== */
+.mems-hidden {
+    display: none !important;
+}
+
+/* ================================================================== */
+/*  ADD-MEMORY FORM  (inline panel form for manual creation)          */
+/* ================================================================== */
+.mems-add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(124, 92, 252, 0.04);
+    border-bottom: 1px solid var(--mems-border);
+    flex-shrink: 0;
+    animation: mems-fade-in 0.2s ease-out;
+}
+
+.mems-add-textarea {
+    width: 100%;
+    min-height: 70px;
+    max-height: 180px;
+    padding: 8px 10px;
+    background: var(--mems-bg-input);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-xs);
+    color: var(--mems-text-bright);
+    font-size: 12.5px;
+    font-family: var(--mems-font);
+    line-height: 1.45;
+    resize: vertical;
+    transition: border-color var(--mems-transition-fast), box-shadow var(--mems-transition-fast);
+    box-sizing: border-box;
+}
+
+.mems-add-textarea:focus {
+    outline: none;
+    border-color: var(--mems-border-focus);
+    box-shadow: 0 0 0 2px var(--mems-primary-soft);
+}
+
+.mems-add-textarea::placeholder {
+    color: var(--mems-text-dim);
+    opacity: 0.6;
+}
+
+.mems-add-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.mems-add-importance-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--mems-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex: 1;
+    min-width: 140px;
+}
+
+.mems-add-importance-label input[type="range"] {
+    flex: 1;
+    height: 4px;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    min-width: 60px;
+}
+
+.mems-add-importance-label input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--mems-primary);
+    cursor: pointer;
+    box-shadow: 0 0 6px var(--mems-primary-glow);
+}
+
+.mems-add-importance-label .mems-range-value {
+    font-size: 11px;
+    color: var(--mems-accent);
+    min-width: 28px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+#mems_add_save,
+#mems_add_cancel {
+    padding: 6px 14px;
+    font-size: 12px;
+}
+
+#mems_add_save:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ================================================================== */
 /*  FOOTER                                                             */
 /* ================================================================== */
 .mems-settings-footer {

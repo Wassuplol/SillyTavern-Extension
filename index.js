@@ -99,6 +99,8 @@ const DEFAULT_SETTINGS = Object.freeze({
         injectAsSystemMessage: true,      // inject as system-level context
         recencyDecay: 0.85,              // exponential decay factor for recency
         boostCurrentCharacter: true,     // boost memories tied to current char
+        rotationWindow: 5,               // skip memories injected within the last N messages (prevents re-injection leak)
+        rotateOnEveryTurn: true,         // rotate the injected set each turn so different memories surface over time
     }),
 
     // ── Display / UI ──────────────────────────────────────────────
@@ -675,6 +677,14 @@ class ContextInjector {
         this._settings = settingsManager;
         this._memory = memoryStore;
         this._rag = ragEngine;
+        // Tracks the last message-index at which each memory was injected.
+        // Key: memory.id, Value: last messageIndex at which it was injected.
+        // This is the anti-leak mechanism: we skip memories that were injected
+        // within the last `rotationWindow` messages so they don't pile up in
+        // every turn's system prompt.
+        this._injectionLog = new Map();
+        // Track the chatId of the last injection so we can reset when switching chats.
+        this._lastChatId = null;
     }
 
     /**
@@ -688,9 +698,19 @@ class ContextInjector {
 
         const memSettings = this._settings.get('memory');
         const charName = ctx?.character?.name || ctx?.characterName || '';
+        const chatId = ctx?.chatId || '';
+
+        // Reset injection log on chat switch so memories can be re-shown in a new context.
+        if (this._lastChatId !== null && this._lastChatId !== chatId) {
+            this._injectionLog.clear();
+        }
+        this._lastChatId = chatId;
+
+        const currentMessageIndex = Array.isArray(ctx?.chat) ? ctx.chat.length - 1 : 0;
+        const rotationWindow = Math.max(0, inj.rotationWindow || 0);
 
         let memories = await this._memory.getAll({
-            chatId: ctx?.chatId || '',
+            chatId,
             minImportance: memSettings.importanceThreshold,
             maxAgeDays: memSettings.memoryRetentionDays,
         });
@@ -702,11 +722,9 @@ class ContextInjector {
             const lastMsg = this._getLastUserMessage(ctx);
             if (lastMsg) {
                 const ragResults = await this._rag.semanticSearch(lastMsg);
-                // Merge RAG results — boost matched memories or add them if not already in the list
                 const existingIds = new Set(memories.map((m) => m.id));
                 for (const r of ragResults) {
                     if (r.memoryId && !existingIds.has(r.memoryId)) {
-                        // Fetch the full memory object
                         const fullMem = await this._memory.get(r.memoryId);
                         if (fullMem) {
                             memories.push(fullMem);
@@ -724,7 +742,6 @@ class ContextInjector {
         } else if (sortBy === SORT_MODES.RECENCY) {
             memories.sort((a, b) => b.createdAt - a.createdAt);
         } else if (sortBy === SORT_MODES.RELEVANCE) {
-            // Relevance = importance * recency decay
             memories.sort((a, b) => {
                 const scoreA = a.importance * Math.pow(inj.recencyDecay, daysAgo(a.createdAt));
                 const scoreB = b.importance * Math.pow(inj.recencyDecay, daysAgo(b.createdAt));
@@ -741,6 +758,23 @@ class ContextInjector {
             });
         }
 
+        // ── ANTI-LEAK: skip memories injected within the last rotationWindow messages ──
+        // Rotation: when rotateOnEveryTurn is true, we also stagger the candidate set
+        // so a different subset gets surfaced on each turn.
+        if (rotationWindow > 0) {
+            memories = memories.filter((m) => {
+                const lastInjected = this._injectionLog.get(m.id);
+                if (lastInjected == null) return true; // never injected -> eligible
+                return (currentMessageIndex - lastInjected) >= rotationWindow;
+            });
+        }
+
+        // Stagger the candidate set each turn (rotation effect).
+        if (inj.rotateOnEveryTurn && memories.length > inj.maxInjectedMemories) {
+            const offset = currentMessageIndex % memories.length;
+            memories = memories.slice(offset).concat(memories.slice(0, offset));
+        }
+
         // Token budget
         const budget = inj.injectionTokenBudget;
         let tokenCount = 0;
@@ -754,6 +788,23 @@ class ContextInjector {
             if (selected.length >= inj.maxInjectedMemories) break;
         }
 
+        if (selected.length === 0) return '';
+
+        // Record the injection so we don't re-pick these on the next turn.
+        for (const m of selected) {
+            this._injectionLog.set(m.id, currentMessageIndex);
+        }
+
+        // Bound the log size so it doesn't grow unbounded.
+        if (this._injectionLog.size > 1000) {
+            // Drop the oldest half by insertion order (Map preserves order).
+            const dropCount = this._injectionLog.size - 500;
+            const it = this._injectionLog.keys();
+            for (let i = 0; i < dropCount; i++) {
+                this._injectionLog.delete(it.next().value);
+            }
+        }
+
         // Format
         const format = memSettings.memoryFormat;
         const recentCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -763,8 +814,8 @@ class ContextInjector {
         const recentText = this._formatMemories(recent, format);
         const olderText = this._formatMemories(older, format);
 
-        let block = inj.injectionTemplate
-            .replace('{memories}', recentText + (olderText ? '\n' + olderText : '') || '(no memories yet)')
+        const block = inj.injectionTemplate
+            .replace('{memories}', (recentText + (olderText ? '\n' + olderText : '')) || '(no memories yet)')
             .replace('{recent}', recentText || '(no recent events)');
 
         return block;
@@ -1219,6 +1270,37 @@ class MemsMemoriesExtension {
             return 'Memories summarized.';
         }, [], 'Summarize recent conversation into memories');
 
+        // ── Manual memory creation ───────────────────────────────
+        registerSlashCommand('mem-add', async (args, text) => {
+            // SillyTavern passes the raw text as the second arg.
+            // Use that if present (works for multi-line input), else parse args.
+            const content = (text || args || '').trim();
+            if (!content) return 'Usage: /mem-add <your memory text>';
+
+            const ctx = SillyTavern.getContext();
+            const stored = await this.memoryStore.add({
+                chatId: this._getChatId(),
+                charName: ctx?.character?.name || ctx?.characterName || '',
+                content,
+                summary: content,
+                importance: 0.8,        // manually-added memories are presumed important
+                sourceMessages: [],
+                tags: ['manual'],
+            });
+
+            // Index in RAG if enabled
+            if (this.ragEngine && this.ragEngine.isEnabled() && this.settings.get('rag.indexOnSummarize')) {
+                this.ragEngine.indexMemory(stored).catch((err) =>
+                    console.warn('[MemsMemories] RAG index on manual add failed:', err?.message));
+            }
+
+            // Refresh panel & badge
+            this._refreshMemoryPanel();
+            this._updateMemoryBadge();
+
+            return `Memory added: "${content.slice(0, 60)}${content.length > 60 ? '…' : ''}"`;
+        }, [], 'Manually add a memory (usage: /mem-add <text>)');
+
         registerSlashCommand('mem-list', async (args) => {
             const count = parseInt(args) || 10;
             const memories = await this.memoryStore.getAll({ maxAgeDays: 365 });
@@ -1506,9 +1588,22 @@ class MemsMemoriesExtension {
                 <span class="mems-panel-drag-icon">⠿</span>
                 <span class="mems-panel-title">🧠 Mem's Memories</span>
                 <span id="mems_memory_count" class="mems-badge">0</span>
+                <button id="mems_panel_add" class="mems-btn-icon" title="Add memory manually">+</button>
                 <button id="mems_panel_refresh" class="mems-btn-icon" title="Refresh">↻</button>
                 <button id="mems_panel_minimize" class="mems-btn-icon" title="Minimize">–</button>
                 <button id="mems_panel_close" class="mems-btn-icon mems-btn-close" title="Close panel">✕</button>
+            </div>
+            <div id="mems_panel_add_form" class="mems-add-form mems-hidden">
+                <textarea id="mems_add_textarea" class="mems-add-textarea" placeholder="Write a memory you want the AI to remember..." maxlength="2000"></textarea>
+                <div class="mems-add-controls">
+                    <label class="mems-add-importance-label">
+                        Importance
+                        <input type="range" id="mems_add_importance" min="0" max="1" step="0.05" value="0.8">
+                        <span id="mems_add_importance_val" class="mems-range-value">0.80</span>
+                    </label>
+                    <button id="mems_add_save" class="mems-btn mems-btn-primary">Save</button>
+                    <button id="mems_add_cancel" class="mems-btn mems-btn-secondary">Cancel</button>
+                </div>
             </div>
             <div class="mems-panel-body">
                 <div id="mems_memory_list" class="mems-memory-list"></div>
@@ -1550,10 +1645,14 @@ class MemsMemoriesExtension {
             this._refreshMemoryPanel();
         });
 
+        // ── Manual add memory form ──
+        this._setupAddForm();
+
         // ── Drag to move ──
         this._setupPanelDrag();
 
         const self = this;
+
         let searchTimeout;
         $('#mems_search_input').on('input', function () {
             clearTimeout(searchTimeout);
@@ -1687,6 +1786,109 @@ class MemsMemoriesExtension {
         });
 
         this._updateMemoryBadge();
+    }
+
+    /**
+     * Wire up the manual "+ Add Memory" form in the panel.
+     * Shows/hides the form, handles Save/Cancel, and submits via
+     * _addMemoryManual.
+     */
+    _setupAddForm() {
+        const $add = $('#mems_panel_add');
+        const $form = $('#mems_panel_add_form');
+        const $textarea = $('#mems_add_textarea');
+        const $importance = $('#mems_add_importance');
+        const $importanceVal = $('#mems_add_importance_val');
+        const $save = $('#mems_add_save');
+        const $cancel = $('#mems_add_cancel');
+
+        if (!$add.length || !$form.length) return;
+
+        // Toggle the form on "+" click
+        $add.on('click', () => {
+            const isOpen = !$form.hasClass('mems-hidden');
+            if (isOpen) {
+                $form.addClass('mems-hidden');
+            } else {
+                $form.removeClass('mems-hidden');
+                $textarea.val('').trigger('focus');
+            }
+        });
+
+        // Live-update importance value display
+        $importance.on('input', () => {
+            $importanceVal.text(parseFloat($importance.val()).toFixed(2));
+        });
+
+        // Cancel hides the form
+        $cancel.on('click', () => {
+            $form.addClass('mems-hidden');
+            $textarea.val('');
+        });
+
+        // Save creates the memory
+        $save.on('click', async () => {
+            const content = $textarea.val().trim();
+            if (!content) {
+                $textarea.trigger('focus');
+                return;
+            }
+            const importance = parseFloat($importance.val());
+            $save.prop('disabled', true).text('Saving…');
+            try {
+                await this._addMemoryManual(content, importance);
+                $form.addClass('mems-hidden');
+                $textarea.val('');
+                if (this.settings.get('display.notifyOnNewMemory')) {
+                    this._showToast(`Memory saved (importance: ${(importance * 100).toFixed(0)}%)`);
+                }
+            } catch (err) {
+                console.error('[MemsMemories] Failed to save manual memory:', err);
+                this._showToast('Failed to save memory');
+            } finally {
+                $save.prop('disabled', false).text('Save');
+            }
+        });
+
+        // Ctrl/Cmd+Enter to save, Escape to cancel
+        $textarea.on('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                $save.trigger('click');
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                $cancel.trigger('click');
+            }
+        });
+    }
+
+    /**
+     * Manually add a memory (used by the panel's "+ Add" form).
+     * @param {string} content
+     * @param {number} [importance=0.8]
+     * @returns {Promise<object|null>}
+     */
+    async _addMemoryManual(content, importance = 0.8) {
+        if (!content || !content.trim()) return null;
+        const ctx = this._ctx;
+        const stored = await this.memoryStore.add({
+            chatId: this._getChatId(),
+            charName: ctx?.character?.name || ctx?.characterName || '',
+            content: content.trim(),
+            summary: content.trim(),
+            importance,
+            sourceMessages: [],
+            tags: ['manual'],
+        });
+
+        if (this.ragEngine && this.ragEngine.isEnabled() && this.settings.get('rag.indexOnSummarize')) {
+            this.ragEngine.indexMemory(stored).catch((err) =>
+                console.warn('[MemsMemories] RAG index on manual add failed:', err?.message));
+        }
+
+        this._refreshMemoryPanel();
+        this._updateMemoryBadge();
+        return stored;
     }
 
     async _updateMemoryBadge() {
