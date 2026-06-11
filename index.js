@@ -110,6 +110,17 @@ const DEFAULT_SETTINGS = Object.freeze({
         confirmBeforeSummary: false,      // ask user before auto-summarizing
         notifyOnNewMemory: false,         // toast when a memory is created
         theme: 'auto',                    // 'auto' | 'light' | 'dark'
+        memoryPanelRefreshInterval: 30000, // ms — panel auto-refresh (0 = off)
+    }),
+
+    // ── Connections ───────────────────────────────────────────────
+    connections: Object.freeze({
+        sillyTavernApiBase: '',           // auto-detected if empty; override e.g. http://localhost:8000
+        externalSummarizerEndpoint: '',   // override summarization API endpoint (e.g. OpenAI-compatible)
+        externalSummarizerApiKey: '',     // API key for the external summarizer
+        externalSummarizerModel: '',      // model name override (empty = use chat model)
+        connectionTimeoutMs: 20000,       // ms timeout for any API call
+        testConnectionOnStartup: false,   // ping connections when extension loads
     }),
 
     // ── Advanced ──────────────────────────────────────────────────
@@ -1500,8 +1511,11 @@ class MemsMemoriesExtension {
         this._refreshMemoryPanel();
         this._updateMemoryBadge();
 
-        // Auto-refresh every 30 seconds
-        setInterval(() => this._refreshMemoryPanel(), 30000);
+        // Auto-refresh interval (configurable, 0 = off)
+        const refreshMs = this.settings.get('display.memoryPanelRefreshInterval');
+        if (refreshMs > 0) {
+            setInterval(() => this._refreshMemoryPanel(), refreshMs);
+        }
     }
 
     _setupPanelDrag() {

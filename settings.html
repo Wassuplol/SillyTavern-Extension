@@ -1,24 +1,19 @@
-<!--
-    Mem's Memories — Settings Panel
-    Fully modular: every tunable value is exposed here.
-    No hardcoded numbers — everything flows from DEFAULT_SETTINGS.
--->
-
 <div id="mems_memories_settings" class="mems-settings-container">
 
     <!-- ───── Header ───── -->
     <div class="mems-settings-header">
-        <h2>🧠 Mem's Memories</h2>
-        <span class="mems-version">v1.0.0</span>
-        <div class="mems-header-actions">
-            <button id="mems_memories_reset" class="mems-btn mems-btn-danger" title="Reset all settings to defaults">↺ Reset</button>
+        <div class="mems-settings-brand">
+            <span class="mems-settings-icon">🧠</span>
+            <h2>Mem's Memories</h2>
+            <span class="mems-version">v1.0.0</span>
         </div>
+        <p class="mems-settings-subtitle">Top-Notch Summarization — every value exposed, nothing hardcoded.</p>
     </div>
 
     <div class="mems-settings-body">
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!--  SUMMARIZATION                                                -->
+        <!--  Summarization                                                -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <div class="mems-section">
             <button class="mems-toggle-section" data-target="mems_section_summarization">
@@ -28,7 +23,7 @@
             <div id="mems_section_summarization" class="mems-section-body">
 
                 <label class="mems-label">
-                    <span>Enable Auto-Summarization</span>
+                    <span>Enable Summarization</span>
                     <input type="checkbox" data-setting="summarization.enabled"
                         {{#if settings.summarization.enabled}}checked{{/if}}>
                 </label>
@@ -42,34 +37,34 @@
                     </select>
                 </label>
 
-                <label class="mems-label" title="How many messages before triggering a summary">
-                    <span>Trigger Interval <em>(messages)</em></span>
+                <label class="mems-label" title="Trigger auto-summary after this many messages">
+                    <span>Auto-Summary Trigger <em>(messages)</em></span>
                     <input type="number" data-setting="summarization.triggerInterval"
-                        value="{{settings.summarization.triggerInterval}}" min="1" max="100" step="1">
+                        value="{{settings.summarization.triggerInterval}}" min="2" max="100" step="1">
                 </label>
 
-                <label class="mems-label" title="Target tokens per generated summary">
+                <label class="mems-label" title="Target maximum tokens per generated summary">
                     <span>Max Summary Tokens</span>
                     <input type="number" data-setting="summarization.maxSummaryTokens"
-                        value="{{settings.summarization.maxSummaryTokens}}" min="50" max="2000" step="10">
+                        value="{{settings.summarization.maxSummaryTokens}}" min="50" max="2000" step="50">
                 </label>
 
-                <label class="mems-label" title="How aggressively to compress text (0 = minimal, 1 = maximum)">
+                <label class="mems-label" title="0 = keep everything, 1 = keep nothing">
                     <span>Compression Ratio <code>{{settings.summarization.compressionRatio}}</code></span>
                     <input type="range" data-setting="summarization.compressionRatio"
                         value="{{settings.summarization.compressionRatio}}" min="0.1" max="0.9" step="0.05">
                 </label>
 
-                <label class="mems-label" title="Most recent N messages weighted higher during summary">
+                <label class="mems-label" title="Most recent N messages get higher weight">
                     <span>Recency Window <em>(messages)</em></span>
                     <input type="number" data-setting="summarization.recencyWindow"
-                        value="{{settings.summarization.recencyWindow}}" min="2" max="100" step="1">
+                        value="{{settings.summarization.recencyWindow}}" min="2" max="200" step="2">
                 </label>
 
-                <label class="mems-label" title="Skip messages shorter than this (characters)">
+                <label class="mems-label" title="Skip messages shorter than this many characters">
                     <span>Min Message Length <em>(chars)</em></span>
                     <input type="number" data-setting="summarization.minMessageLength"
-                        value="{{settings.summarization.minMessageLength}}" min="0" max="500" step="10">
+                        value="{{settings.summarization.minMessageLength}}" min="10" max="500" step="10">
                 </label>
 
                 <label class="mems-label">
@@ -79,27 +74,34 @@
                 </label>
 
                 <label class="mems-label">
-                    <span>Preserve Direct Quotes</span>
+                    <span>Preserve Quotes</span>
                     <input type="checkbox" data-setting="summarization.preserveQuotes"
                         {{#if settings.summarization.preserveQuotes}}checked{{/if}}>
                 </label>
 
                 <label class="mems-label">
-                    <span>Deduplicate Summary Lines</span>
+                    <span>Deduplicate <em>(near-duplicate summary lines)</em></span>
                     <input type="checkbox" data-setting="summarization.deduplicate"
                         {{#if settings.summarization.deduplicate}}checked{{/if}}>
                 </label>
 
-                <label class="mems-label mems-label-block">
-                    <span>Summarization Prompt</span>
-                    <textarea data-setting="summarization.summaryPrompt" rows="3">{{settings.summarization.summaryPrompt}}</textarea>
+                <label class="mems-label" title="Auto = use current chat model. Override with any model name.">
+                    <span>Summarization Model</span>
+                    <input type="text" data-setting="summarization.summarizationModel"
+                        value="{{settings.summarization.summarizationModel}}" placeholder="auto">
+                </label>
+
+                <label class="mems-label mems-label-full" title="Custom summarization prompt. Variables: {{messages}}">
+                    <span>Prompt Template</span>
+                    <textarea data-setting="summarization.summaryPrompt" rows="3"
+                        placeholder="Summarize the following conversation...">{{settings.summarization.summaryPrompt}}</textarea>
                 </label>
 
             </div>
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!--  MEMORY STORE                                                 -->
+        <!--  Memory Store                                                 -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <div class="mems-section">
             <button class="mems-toggle-section" data-target="mems_section_memory">
@@ -108,77 +110,78 @@
             </button>
             <div id="mems_section_memory" class="mems-section-body">
 
-                <label class="mems-label" title="Maximum memories to store before pruning">
+                <label class="mems-label" title="Hard cap on number of stored memories">
                     <span>Max Memories</span>
                     <input type="number" data-setting="memory.maxMemories"
-                        value="{{settings.memory.maxMemories}}" min="10" max="10000" step="10">
+                        value="{{settings.memory.maxMemories}}" min="10" max="2000" step="10">
                 </label>
 
-                <label class="mems-label" title="Auto-delete memories older than N days">
-                    <span>Memory Retention <em>(days)</em></span>
+                <label class="mems-label" title="Auto-delete memories older than this many days">
+                    <span>Retention <em>(days)</em></span>
                     <input type="number" data-setting="memory.memoryRetentionDays"
-                        value="{{settings.memory.memoryRetentionDays}}" min="1" max="365" step="1">
+                        value="{{settings.memory.memoryRetentionDays}}" min="1" max="730" step="1">
                 </label>
 
-                <label class="mems-label" title="Minimum importance score for a memory to be kept (0.0 = keep everything, 1.0 = only critical)">
+                <label class="mems-label" title="Memories below this importance score get pruned (0 = keep all)">
                     <span>Importance Threshold <code>{{settings.memory.importanceThreshold}}</code></span>
                     <input type="range" data-setting="memory.importanceThreshold"
                         value="{{settings.memory.importanceThreshold}}" min="0" max="1" step="0.05">
                 </label>
 
-                <label class="mems-label" title="Merge semantically similar memories">
+                <label class="mems-label">
                     <span>Merge Similar Memories</span>
                     <input type="checkbox" data-setting="memory.mergeSimilar"
                         {{#if settings.memory.mergeSimilar}}checked{{/if}}>
                 </label>
 
-                <label class="mems-label" title="Similarity threshold for merging (0.0 = merge everything, 1.0 = merge only identical)">
+                <label class="mems-label" title="Similarity cutoff for auto-merge (0 = merge nothing, 1 = identical)">
                     <span>Merge Threshold <code>{{settings.memory.mergeThreshold}}</code></span>
                     <input type="range" data-setting="memory.mergeThreshold"
-                        value="{{settings.memory.mergeThreshold}}" min="0.5" max="0.95" step="0.05">
+                        value="{{settings.memory.mergeThreshold}}" min="0.5" max="0.99" step="0.05">
                 </label>
 
                 <label class="mems-label">
                     <span>Memory Format</span>
                     <select data-setting="memory.memoryFormat">
-                        <option value="bullet" {{#if isFormatBullet}}selected{{/if}}>Bullet Points</option>
+                        <option value="bullet" {{#if isFormatBullet}}selected{{/if}}>Bullet List</option>
                         <option value="narrative" {{#if isFormatNarrative}}selected{{/if}}>Narrative</option>
                         <option value="structured_json" {{#if isFormatJson}}selected{{/if}}>Structured JSON</option>
                     </select>
                 </label>
 
                 <label class="mems-label">
-                    <span>Auto-Score Importance</span>
+                    <span>Auto-Score Importance <em>(via LLM)</em></span>
                     <input type="checkbox" data-setting="memory.generateImportance"
                         {{#if settings.memory.generateImportance}}checked{{/if}}>
                 </label>
 
-                <label class="mems-label" title="Token cap per stored memory entry">
-                    <span>Max Memory Tokens</span>
-                    <input type="number" data-setting="memory.maxMemoryTokens"
-                        value="{{settings.memory.maxMemoryTokens}}" min="30" max="1000" step="10">
+                <label class="mems-label mems-label-full" title="Prompt used to score importance. Must return a 0.0–1.0 number.">
+                    <span>Importance Scoring Prompt</span>
+                    <textarea data-setting="memory.importancePrompt" rows="2"
+                        placeholder="On a scale of 0.0 to 1.0...">{{settings.memory.importancePrompt}}</textarea>
                 </label>
 
-                <label class="mems-label mems-label-block">
-                    <span>Importance Scoring Prompt</span>
-                    <textarea data-setting="memory.importancePrompt" rows="2">{{settings.memory.importancePrompt}}</textarea>
+                <label class="mems-label" title="Token ceiling per stored memory entry">
+                    <span>Max Memory Tokens</span>
+                    <input type="number" data-setting="memory.maxMemoryTokens"
+                        value="{{settings.memory.maxMemoryTokens}}" min="50" max="1000" step="25">
                 </label>
 
             </div>
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!--  CONTEXT INJECTION                                            -->
+        <!--  Context Injection                                            -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <div class="mems-section">
             <button class="mems-toggle-section" data-target="mems_section_injection">
-                <span>💉 Context Injection</span>
+                <span>📥 Context Injection</span>
                 <span class="mems-chevron">▼</span>
             </button>
             <div id="mems_section_injection" class="mems-section-body">
 
                 <label class="mems-label">
-                    <span>Enable Memory Injection</span>
+                    <span>Enable Injection</span>
                     <input type="checkbox" data-setting="injection.enabled"
                         {{#if settings.injection.enabled}}checked{{/if}}>
                 </label>
@@ -190,57 +193,70 @@
                         <option value="after_system" {{#if isPositionAfterSystem}}selected{{/if}}>After System Prompt</option>
                         <option value="before_last_message" {{#if isPositionBeforeLast}}selected{{/if}}>Before Last Message</option>
                         <option value="after_last_message" {{#if isPositionAfterLast}}selected{{/if}}>After Last Message</option>
+                        <option value="custom" {{#if isPositionCustom}}selected{{/if}}>Custom (template only)</option>
                     </select>
                 </label>
 
-                <label class="mems-label" title="Max number of memories to inject per request">
+                <label class="mems-label" title="How many memories to inject">
                     <span>Max Injected Memories</span>
                     <input type="number" data-setting="injection.maxInjectedMemories"
                         value="{{settings.injection.maxInjectedMemories}}" min="1" max="50" step="1">
                 </label>
 
-                <label class="mems-label" title="Total token budget for the injected memory block">
+                <label class="mems-label" title="Token budget for the entire injected block">
                     <span>Injection Token Budget</span>
                     <input type="number" data-setting="injection.injectionTokenBudget"
-                        value="{{settings.injection.injectionTokenBudget}}" min="50" max="4000" step="50">
+                        value="{{settings.injection.injectionTokenBudget}}" min="100" max="4000" step="50">
                 </label>
 
                 <label class="mems-label">
-                    <span>Sort Memories By</span>
+                    <span>Sort By</span>
                     <select data-setting="injection.sortBy">
                         <option value="importance" {{#if isSortImportance}}selected{{/if}}>Importance</option>
                         <option value="recency" {{#if isSortRecency}}selected{{/if}}>Recency</option>
-                        <option value="relevance" {{#if isSortRelevance}}selected{{/if}}>Relevance (hybrid)</option>
+                        <option value="relevance" {{#if isSortRelevance}}selected{{/if}}>Relevance</option>
                     </select>
                 </label>
 
-                <label class="mems-label" title="Exponential decay factor for recency (lower = older memories decay faster)">
-                    <span>Recency Decay <code>{{settings.injection.recencyDecay}}</code></span>
-                    <input type="range" data-setting="injection.recencyDecay"
-                        value="{{settings.injection.recencyDecay}}" min="0.5" max="0.99" step="0.01">
+                <label class="mems-label mems-label-full" title="Template: {memories} = memory list, {recent} = last 7 days only">
+                    <span>Injection Template</span>
+                    <textarea data-setting="injection.injectionTemplate" rows="3"
+                        placeholder="## Relevant Memories\n{memories}\n\n## Recent Events\n{recent}\n">{{settings.injection.injectionTemplate}}</textarea>
                 </label>
 
                 <label class="mems-label">
-                    <span>Boost Current Character's Memories</span>
-                    <input type="checkbox" data-setting="injection.boostCurrentCharacter"
-                        {{#if settings.injection.boostCurrentCharacter}}checked{{/if}}>
+                    <span>Inject As User Message</span>
+                    <input type="checkbox" data-setting="injection.injectInUserMessage"
+                        {{#if settings.injection.injectInUserMessage}}checked{{/if}}>
                 </label>
 
-                <label class="mems-label mems-label-block">
-                    <span>Injection Template</span>
-                    <textarea data-setting="injection.injectionTemplate" rows="4">{{settings.injection.injectionTemplate}}</textarea>
-                    <small class="mems-hint">{memories} = all memories, {recent} = recent only</small>
+                <label class="mems-label">
+                    <span>Inject As System Message</span>
+                    <input type="checkbox" data-setting="injection.injectAsSystemMessage"
+                        {{#if settings.injection.injectAsSystemMessage}}checked{{/if}}>
+                </label>
+
+                <label class="mems-label" title="Exponential decay factor for recency (0 = instant decay, 1 = no decay)">
+                    <span>Recency Decay <code>{{settings.injection.recencyDecay}}</code></span>
+                    <input type="range" data-setting="injection.recencyDecay"
+                        value="{{settings.injection.recencyDecay}}" min="0.5" max="1" step="0.05">
+                </label>
+
+                <label class="mems-label">
+                    <span>Boost Current Character</span>
+                    <input type="checkbox" data-setting="injection.boostCurrentCharacter"
+                        {{#if settings.injection.boostCurrentCharacter}}checked{{/if}}>
                 </label>
 
             </div>
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!--  DISPLAY / UI                                                  -->
+        <!--  Display / UI                                                 -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <div class="mems-section">
             <button class="mems-toggle-section" data-target="mems_section_display">
-                <span>🎨 Display</span>
+                <span>🖥️ Display</span>
                 <span class="mems-chevron">▼</span>
             </button>
             <div id="mems_section_display" class="mems-section-body">
@@ -258,7 +274,7 @@
                 </label>
 
                 <label class="mems-label">
-                    <span>Memory Badge Count</span>
+                    <span>Show Memory Badge Count</span>
                     <input type="checkbox" data-setting="display.memoryBadgeCount"
                         {{#if settings.display.memoryBadgeCount}}checked{{/if}}>
                 </label>
@@ -286,17 +302,81 @@
                 <label class="mems-label">
                     <span>Theme</span>
                     <select data-setting="display.theme">
-                        <option value="auto" {{#if isThemeAuto}}selected{{/if}}>Auto</option>
+                        <option value="auto" {{#if isThemeAuto}}selected{{/if}}>Auto (follow ST)</option>
                         <option value="light" {{#if isThemeLight}}selected{{/if}}>Light</option>
                         <option value="dark" {{#if isThemeDark}}selected{{/if}}>Dark</option>
                     </select>
+                </label>
+
+                <label class="mems-label" title="How often the memory panel auto-refreshes. Set to 0 to disable.">
+                    <span>Panel Refresh <em>(ms, 0 = off)</em></span>
+                    <input type="number" data-setting="display.memoryPanelRefreshInterval"
+                        value="{{settings.display.memoryPanelRefreshInterval}}" min="0" max="300000" step="5000">
                 </label>
 
             </div>
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!--  ADVANCED                                                     -->
+        <!--  Connections (NEW)                                            -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="mems-section">
+            <button class="mems-toggle-section" data-target="mems_section_connections">
+                <span>🔌 Connections</span>
+                <span class="mems-chevron">▼</span>
+            </button>
+            <div id="mems_section_connections" class="mems-section-body">
+
+                <div class="mems-callout mems-callout-info">
+                    <strong>🔗 Override endpoints</strong> for the summarization engine.
+                    Leave empty to use SillyTavern's built-in API settings.
+                </div>
+
+                <label class="mems-label" title="Override the SillyTavern API base URL (e.g., http://localhost:8000). Leave empty for auto-detect.">
+                    <span>ST API Base <em>(override)</em></span>
+                    <input type="text" data-setting="connections.sillyTavernApiBase"
+                        value="{{settings.connections.sillyTavernApiBase}}" placeholder="auto-detect">
+                </label>
+
+                <fieldset class="mems-fieldset">
+                    <legend>🌐 External Summarizer</legend>
+
+                    <label class="mems-label" title="Use a different API endpoint for summarization (OpenAI-compatible)">
+                        <span>Endpoint URL</span>
+                        <input type="text" data-setting="connections.externalSummarizerEndpoint"
+                            value="{{settings.connections.externalSummarizerEndpoint}}" placeholder="e.g., https://api.openai.com/v1">
+                    </label>
+
+                    <label class="mems-label" title="API key for the external summarizer">
+                        <span>API Key</span>
+                        <input type="password" data-setting="connections.externalSummarizerApiKey"
+                            value="{{settings.connections.externalSummarizerApiKey}}" placeholder="sk-...">
+                    </label>
+
+                    <label class="mems-label" title="Model to use for summarization (empty = use current chat model)">
+                        <span>Model <em>(optional)</em></span>
+                        <input type="text" data-setting="connections.externalSummarizerModel"
+                            value="{{settings.connections.externalSummarizerModel}}" placeholder="auto">
+                    </label>
+
+                    <label class="mems-label" title="Timeout in milliseconds for any API call">
+                        <span>Connection Timeout <em>(ms)</em></span>
+                        <input type="number" data-setting="connections.connectionTimeoutMs"
+                            value="{{settings.connections.connectionTimeoutMs}}" min="1000" max="120000" step="1000">
+                    </label>
+                </fieldset>
+
+                <label class="mems-label" title="Ping connections and validate endpoints when the extension starts">
+                    <span>Test Connection On Startup</span>
+                    <input type="checkbox" data-setting="connections.testConnectionOnStartup"
+                        {{#if settings.connections.testConnectionOnStartup}}checked{{/if}}>
+                </label>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  Advanced                                                     -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <div class="mems-section">
             <button class="mems-toggle-section" data-target="mems_section_advanced">
