@@ -1425,13 +1425,10 @@ class MemsMemoriesExtension {
     /* ---- Settings Panel -------------------------------------------- */
 
     async _renderSettingsPanel() {
-        const { renderExtensionTemplateAsync } = this._ctx;
-        if (!renderExtensionTemplateAsync) return;
+        const s = this.settings.getAll();
 
         // Pre-compute boolean flags so settings.html can use simple {{#if flag}} checks.
         // This avoids Handlebars subexpressions like (eq a b) which SillyTavern doesn't register.
-        const s = this.settings.getAll();
-
         const templateVars = {
             settings: s,
             isStrategyProgressive:  s.summarization.strategy === STRATEGIES.PROGRESSIVE,
@@ -1459,17 +1456,91 @@ class MemsMemoriesExtension {
             isEmbedCustom: s.rag.embeddingProvider === EMBEDDING_PROVIDERS.CUSTOM,
         };
 
-        const settingsHtml = await renderExtensionTemplateAsync(
-            'third-party/SillyTavern-Extension',
-            'settings',
-            templateVars
-        );
+        // Try the proper SillyTavern template renderer first. Try multiple candidate paths
+        // so the extension works regardless of which folder the user installed it to.
+        const candidates = this._discoverExtensionPaths();
+        const { renderExtensionTemplateAsync } = this._ctx;
+        let settingsHtml = '';
+        if (renderExtensionTemplateAsync) {
+            for (const path of candidates) {
+                try {
+                    settingsHtml = await renderExtensionTemplateAsync(path, 'settings', templateVars);
+                    if (settingsHtml && !settingsHtml.includes('404')) {
+                        console.log(`[MemsMemories] Settings rendered via ${path}`);
+                        break;
+                    }
+                } catch (err) {
+                    console.warn(`[MemsMemories] renderExtensionTemplateAsync("${path}") failed:`, err?.message);
+                }
+            }
+        }
+
+        // Last-resort fallback: fetch settings.html via fetch() and do simple var replacement
+        if (!settingsHtml) {
+            try {
+                const resp = await fetch(new URL('./settings.html', import.meta.url));
+                if (resp.ok) {
+                    const raw = await resp.text();
+                    settingsHtml = this._simpleHandlebars(raw, templateVars);
+                    console.log('[MemsMemories] Settings rendered via fetch fallback');
+                }
+            } catch (err) {
+                console.warn('[MemsMemories] Fetch fallback failed:', err?.message);
+            }
+        }
+
+        if (!settingsHtml) {
+            console.error('[MemsMemories] Could not render settings panel via any method. The extension may not be properly installed.');
+            return;
+        }
 
         const $container = $('#extensions_settings2');
         if ($container.length) {
             $container.append(settingsHtml);
             this._bindSettingsEvents();
+        } else {
+            console.error('[MemsMemories] #extensions_settings2 not found in DOM');
         }
+    }
+
+    /**
+     * Discover candidate folder names for the extension. Tries the most common
+     * locations where a user might install it. Order: most-specific first.
+     */
+    _discoverExtensionPaths() {
+        const paths = [];
+        // Try to derive from the script's own URL (works for ES modules)
+        try {
+            const scriptUrl = import.meta.url;
+            // /data/default/extensions/<folder>/index.js → folder is the second-to-last path segment
+            const m = scriptUrl.match(/\/data\/default\/extensions\/([^/]+)\/index\.js/);
+            if (m) paths.push(`third-party/${m[1]}`);
+        } catch { /* import.meta.url may not be available */ }
+        // Hard-coded common names as fallback
+        paths.push('third-party/SillyTavern-Extension');
+        paths.push('third-party/MemsMemories');
+        paths.push('third-party/mems_memories');
+        return [...new Set(paths)];
+    }
+
+    /**
+     * Tiny Handlebars replacement for the fallback render path.
+     * Supports {{var}}, {{var.sub}}, and {{#if flag}}…{{else}}…{{/if}}.
+     */
+    _simpleHandlebars(template, vars) {
+        template = template.replace(/\{\{#if\s+([^}]+)\}\}([\s\S]*?)(?:\{\{else\}\}([\s\S]*?))?\{\{\/if\}\}/g, (_, k, a, b) => {
+            const v = this._hbResolve(k.trim(), vars);
+            return v ? a : (b || '');
+        });
+        template = template.replace(/\{\{\s*([^{}#\/][^}]*?)\s*\}\}/g, (_, k) => {
+            const v = this._hbResolve(k.trim(), vars);
+            return v == null ? '' : String(v);
+        });
+        return template;
+    }
+
+    _hbResolve(key, vars) {
+        return key.split('.').reduce((o, k) => o == null ? o : o[k], vars);
     }
 
     _bindSettingsEvents() {
@@ -1926,14 +1997,36 @@ class MemsMemoriesExtension {
 
 const extension = new MemsMemoriesExtension();
 
+// Top-level safety net: catch any unhandled errors and surface them
+window.addEventListener('error', (ev) => {
+    if (ev.error) console.error('[MemsMemories] Unhandled error:', ev.error);
+});
+window.addEventListener('unhandledrejection', (ev) => {
+    console.error('[MemsMemories] Unhandled promise rejection:', ev.reason);
+});
+
+console.log('[MemsMemories] Module loaded; ready for onActivate().');
+
 export async function onActivate() {
-    await extension.onActivate();
+    try {
+        await extension.onActivate();
+    } catch (err) {
+        console.error('[MemsMemories] onActivate failed:', err);
+    }
 }
 
 export function onEnable() {
-    extension.onEnable();
+    try {
+        extension.onEnable();
+    } catch (err) {
+        console.error('[MemsMemories] onEnable failed:', err);
+    }
 }
 
 export function onDisable() {
-    extension.onDisable();
+    try {
+        extension.onDisable();
+    } catch (err) {
+        console.error('[MemsMemories] onDisable failed:', err);
+    }
 }

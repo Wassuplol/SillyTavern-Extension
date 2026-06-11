@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Mem's Memories — Test Harness</title>
+    <link rel="stylesheet" href="./style.css" />
+    <!-- jQuery (SillyTavern exposes this as a global) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- toastr (SillyTavern uses this for toasts) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+    <!-- localforage (SillyTavern.libs.localforage) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+    <style>
+        body { background: #0d0d17; color: #f0f0f8; font-family: sans-serif; padding: 20px; }
+        h1 { color: #7c5cfc; }
+        #extensions_settings2 { max-width: 1200px; margin: 20px auto; }
+        #console-log { background: #1a1a2e; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; height: 200px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.06); }
+        #console-log .err { color: #ff4d6a; }
+        #console-log .warn { color: #f0a030; }
+        #console-log .ok  { color: #00d4aa; }
+    </style>
+</head>
+<body>
+    <h1>🧠 Mem's Memories — Test Harness</h1>
+    <p>Bootstraps the extension against a minimal SillyTavern mock to verify the full pipeline.</p>
+
+    <h2>Settings container (where extension injects HTML)</h2>
+    <div id="extensions_settings2"></div>
+
+    <h2>Console Output</h2>
+    <pre id="console-log"></pre>
+
+    <script>
+        // ─────────────────────────────────────────────────────────────
+        // Capture all console output
+        // ─────────────────────────────────────────────────────────────
+        const logEl = document.getElementById('console-log');
+        const origLog = console.log, origErr = console.error, origWarn = console.warn;
+        function append(prefix, cls, args) {
+            const line = document.createElement('div');
+            line.className = cls;
+            line.textContent = prefix + ' ' + Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+            logEl.appendChild(line);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        console.log   = function() { append('[LOG]', '',   arguments); origLog.apply(console, arguments); };
+        console.error = function() { append('[ERR]', 'err', arguments); origErr.apply(console, arguments); };
+        console.warn  = function() { append('[WARN]', 'warn', arguments); origWarn.apply(console, arguments); };
+        window.addEventListener('error', ev => append('[UNCAUGHT]', 'err', [ev.error || ev.message]));
+        window.addEventListener('unhandledrejection', ev => append('[UNHANDLED REJECTION]', 'err', [ev.reason]));
+
+        // ─────────────────────────────────────────────────────────────
+        // Mock SillyTavern global
+        // ─────────────────────────────────────────────────────────────
+        const mockExtensionSettings = {};
+        const mockChat = [];
+        const mockEventHandlers = {};
+
+        const mockCtx = {
+            extensionSettings: mockExtensionSettings,
+            saveSettingsDebounced: () => console.log('  → saveSettingsDebounced() called'),
+            chat: mockChat,
+            chatId: 'test_chat_1',
+            character: { name: 'TestChar' },
+            characterName: 'TestChar',
+            characters: [],
+            activeCharacter: 0,
+            eventSource: {
+                on: (evt, fn) => { (mockEventHandlers[evt] = mockEventHandlers[evt] || []).push(fn); },
+                off: (evt, fn) => { mockEventHandlers[evt] = (mockEventHandlers[evt] || []).filter(f => f !== fn); },
+                emit: (evt, data) => { (mockEventHandlers[evt] || []).forEach(fn => fn(data)); },
+            },
+            registerSlashCommand: (name, fn, aliases, help) => {
+                console.log('  → registered slash command: /' + name + ' — ' + (help || ''));
+            },
+            renderExtensionTemplateAsync: async (path, name, vars) => {
+                console.log('  → renderExtensionTemplateAsync(' + path + ', ' + name + ') called with ' + Object.keys(vars || {}).length + ' vars');
+                // The settings.html uses Handlebars. We need to compile it client-side.
+                // For this test, fetch the file and do simple {{var}} replacement.
+                try {
+                    const resp = await fetch('./settings.html');
+                    const html = await resp.text();
+                    return renderHandlebars(html, vars || {});
+                } catch (err) {
+                    console.error('Failed to load settings.html:', err);
+                    return '<div>ERROR loading settings template: ' + err.message + '</div>';
+                }
+            },
+            generateQuietPrompt: async ({ quietPrompt }) => {
+                console.log('  → generateQuietPrompt called (mocked)');
+                return 'A test summary of: ' + quietPrompt.slice(0, 80) + '…';
+            },
+            sendMessage: () => {},
+        };
+
+        // Tiny Handlebars-lite replacement for {{var}} + {{#if flag}}…{{/if}}
+        function renderHandlebars(template, vars) {
+            // First, expand {{#if flag}} … {{else}} … {{/if}} and {{#if flag}} … {{/if}}
+            template = template.replace(/\{\{#if\s+([^}]+)\}\}([\s\S]*?)(?:\{\{else\}\}([\s\S]*?))?\{\{\/if\}\}/g, (_, key, a, b) => {
+                const v = resolveKey(key.trim(), vars);
+                return v ? a : (b || '');
+            });
+            // Expand {{var.sub}} placeholders
+            template = template.replace(/\{\{\s*([^{}#\/][^}]*?)\s*\}\}/g, (_, key) => {
+                const v = resolveKey(key.trim(), vars);
+                return v == null ? '' : String(v);
+            });
+            return template;
+        }
+        function resolveKey(key, vars) {
+            return key.split('.').reduce((o, k) => o == null ? o : o[k], vars);
+        }
+
+        // Expose as the global SillyTavern that the extension expects
+        window.SillyTavern = {
+            getContext: () => mockCtx,
+            libs: { localforage },
+        };
+
+        // ─────────────────────────────────────────────────────────────
+        // Load the extension
+        // ─────────────────────────────────────────────────────────────
+        (async () => {
+            console.log('Loading extension as ES module…');
+            try {
+                // Use dynamic ES module import so the extension's `export` works
+                const mod = await import('./index.js');
+                console.log('Module loaded. Exports:', Object.keys(mod));
+                // Trigger the hooks
+                if (mod.onActivate) {
+                    console.log('Calling onActivate()…');
+                    await mod.onActivate();
+                    console.log('onActivate() resolved.');
+                }
+                // Allow DOM to settle
+                setTimeout(() => {
+                    const settingsRendered = document.querySelector('#mems_memories_settings') != null;
+                    const panelRendered = document.querySelector('#mems_memories_panel') != null;
+                    console.log('--- FINAL CHECKS ---');
+                    console.log('Settings panel rendered:', settingsRendered);
+                    console.log('Memory panel rendered:', panelRendered);
+                    if (settingsRendered) console.log('Settings section count:', document.querySelectorAll('.mems-section').length);
+                    if (panelRendered) console.log('Memory panel header:', document.querySelector('.mems-panel-title')?.textContent);
+
+                    // Test the manual add
+                    console.log('--- TESTING MANUAL ADD ---');
+                    if (window.MemsMemoriesTestAdd) {
+                        window.MemsMemoriesTestAdd('Test memory from console');
+                    } else {
+                        console.warn('window.MemsMemoriesTestAdd not exposed');
+                    }
+
+                    // Test the panel add button click
+                    console.log('--- TESTING PANEL + BUTTON ---');
+                    const addBtn = document.getElementById('mems_panel_add');
+                    if (addBtn) {
+                        addBtn.click();
+                        setTimeout(() => {
+                            const form = document.getElementById('mems_panel_add_form');
+                            console.log('Add form visible after + click:', form && !form.classList.contains('mems-hidden'));
+                        }, 200);
+                    }
+
+                    // Test summarizing
+                    console.log('--- TESTING /mem-add slash command ---');
+                    mockChat.push({ is_user: true, mes: 'Hello there, how are you doing today? I wanted to talk about the magic sword.' });
+                    mockChat.push({ is_user: false, name: 'TestChar', mes: 'I am well. The magic sword is legendary.' });
+                    if (mod.onActivate) {
+                        // Already triggered, but fire message_received to trigger summarization
+                        mockCtx.eventSource.emit('message_received', {});
+                    }
+                }, 1000);
+            } catch (err) {
+                console.error('Failed to load extension:', err);
+            }
+        })();
+    </script>
+</body>
+</html>
