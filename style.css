@@ -1,39 +1,74 @@
 /**
- * Mem's Memories — Extension Styles
- * Covers: Settings panel, Memory side-panel, toast notifications
+ * Mem's Memories v2.0.0 — Personal Extension for Mem
+ * 
+ * Premium settings UI with custom switches, SVG icons, range sliders,
+ * fieldsets, separators, conditional blocks, and a memory side panel.
+ * No hardcoded values — everything is driven by CSS variables.
  */
 
 /* ================================================================== */
-/*  CSS VARIABLES (themeable)                                          */
+/*  CSS CUSTOM PROPERTIES  (single source of truth)                    */
 /* ================================================================== */
 :root {
-    --mems-primary: #6c5ce7;
-    --mems-primary-hover: #5a4bd1;
-    --mems-primary-soft: rgba(108, 92, 231, 0.12);
-    --mems-accent: #00cec9;
-    --mems-danger: #e74c3c;
-    --mems-danger-hover: #c0392b;
-    --mems-warning: #f39c12;
-    --mems-warning-hover: #d68910;
-    --mems-success: #27ae60;
-    --mems-bg: rgba(20, 20, 30, 0.96);
-    --mems-bg-elevated: rgba(30, 30, 42, 0.98);
-    --mems-border: rgba(255, 255, 255, 0.08);
-    --mems-border-hover: rgba(255, 255, 255, 0.15);
-    --mems-text: #e0e0e0;
-    --mems-text-dim: #888;
-    --mems-text-bright: #fff;
-    --mems-radius: 10px;
-    --mems-radius-sm: 6px;
-    --mems-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-    --mems-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Palette */
+    --mems-primary: #7c5cfc;
+    --mems-primary-glow: rgba(124, 92, 252, 0.35);
+    --mems-primary-soft: rgba(124, 92, 252, 0.10);
+    --mems-primary-border: rgba(124, 92, 252, 0.25);
+    --mems-accent: #00d4aa;
+    --mems-accent-soft: rgba(0, 212, 170, 0.10);
+    --mems-danger: #ff4d6a;
+    --mems-danger-soft: rgba(255, 77, 106, 0.12);
+    --mems-warning: #f0a030;
+    --mems-warning-soft: rgba(240, 160, 48, 0.10);
+    --mems-success: #2dd4bf;
+
+    /* Surfaces */
+    --mems-bg: #0d0d17;
+    --mems-bg-elevated: #141423;
+    --mems-bg-input: #1a1a2e;
+    --mems-bg-section: rgba(255, 255, 255, 0.015);
+
+    /* Borders */
+    --mems-border: rgba(255, 255, 255, 0.06);
+    --mems-border-hover: rgba(255, 255, 255, 0.12);
+    --mems-border-focus: rgba(124, 92, 252, 0.40);
+
+    /* Text */
+    --mems-text: #c8c8d8;
+    --mems-text-dim: #6b6b80;
+    --mems-text-bright: #f0f0f8;
+    --mems-text-label: #d4d4e0;
+
+    /* Sizing */
+    --mems-radius: 12px;
+    --mems-radius-sm: 8px;
+    --mems-radius-xs: 4px;
+    --mems-gap: 0px;            /* spacing between setting rows in an open section */
+    --mems-pad-row: 11px 16px;
+
+    /* Misc */
+    --mems-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+    --mems-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+    --mems-font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
     --mems-transition: 180ms ease;
+    --mems-transition-fast: 120ms ease;
 }
 
 /* ================================================================== */
-/*  SETTINGS PANEL                                                     */
+/*  BASE RESET  (scoped to our container)                              */
 /* ================================================================== */
-#mems_memories_settings {
+#mems_memories_settings,
+#mems_memories_settings *,
+#mems_memories_settings *::before,
+#mems_memories_settings *::after {
+    box-sizing: border-box;
+}
+
+/* ================================================================== */
+/*  CONTAINER                                                          */
+/* ================================================================== */
+.mems-settings-container {
     font-family: var(--mems-font);
     color: var(--mems-text);
     background: var(--mems-bg);
@@ -44,257 +79,485 @@
     box-shadow: var(--mems-shadow);
 }
 
-/* Header */
+/* ================================================================== */
+/*  HEADER                                                             */
+/* ================================================================== */
 .mems-settings-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    background: linear-gradient(135deg, rgba(108, 92, 231, 0.18), rgba(0, 206, 201, 0.08));
+    padding: 22px 24px 16px;
+    background: linear-gradient(160deg, rgba(124, 92, 252, 0.14) 0%, rgba(0, 212, 170, 0.05) 100%);
     border-bottom: 1px solid var(--mems-border);
 }
 
-.mems-settings-header h2 {
+.mems-settings-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.mems-settings-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.mems-settings-brand h2 {
     margin: 0;
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 700;
     color: var(--mems-text-bright);
-    flex: 1;
+    letter-spacing: -0.2px;
 }
 
 .mems-version {
     font-size: 11px;
-    color: var(--mems-text-dim);
+    font-weight: 600;
+    color: var(--mems-primary);
     background: var(--mems-primary-soft);
-    padding: 3px 8px;
+    border: 1px solid var(--mems-primary-border);
+    padding: 2px 10px;
     border-radius: 20px;
-    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
-.mems-header-actions {
-    display: flex;
-    gap: 6px;
+.mems-settings-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: var(--mems-text-dim);
+    font-weight: 400;
 }
 
-/* Body */
+/* ================================================================== */
+/*  BODY  (scrollable settings area)                                   */
+/* ================================================================== */
 .mems-settings-body {
-    padding: 0;
-    max-height: 60vh;
+    max-height: 62vh;
     overflow-y: auto;
 }
 
-/* Section toggles */
+/* ================================================================== */
+/*  SECTIONS                                                           */
+/* ================================================================== */
 .mems-section {
     border-bottom: 1px solid var(--mems-border);
 }
 
-.mems-section:last-child {
+.mems-section:last-of-type {
     border-bottom: none;
 }
 
 .mems-toggle-section {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
     width: 100%;
-    padding: 14px 20px;
+    padding: 13px 20px;
     background: none;
     border: none;
     color: var(--mems-text-bright);
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
-    cursor: pointer;
     font-family: var(--mems-font);
-    transition: background var(--mems-transition);
+    cursor: pointer;
+    transition: background var(--mems-transition-fast);
+    text-align: left;
 }
 
 .mems-toggle-section:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.mems-section-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--mems-text-dim);
+    opacity: 0.7;
+    transition: opacity var(--mems-transition-fast), color var(--mems-transition-fast);
+}
+
+.mems-toggle-section:hover .mems-section-icon {
+    opacity: 1;
+    color: var(--mems-primary);
+}
+
+.mems-chevron {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--mems-text-dim);
+    transition: transform var(--mems-transition);
+    flex-shrink: 0;
 }
 
 .mems-toggle-section.collapsed .mems-chevron {
     transform: rotate(-90deg);
 }
 
-.mems-chevron {
-    font-size: 11px;
-    color: var(--mems-text-dim);
-    transition: transform var(--mems-transition);
-}
-
+/* Collapsed body is hidden via JS/Handlebars — but we also handle it in CSS */
 .mems-section-body {
-    padding: 8px 20px 16px;
+    padding: 4px 20px 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    /* gap is added between rows via margin on .mems-setting-row, not here */
 }
 
-/* Labels & inputs */
-.mems-label {
+/* ================================================================== */
+/*  SETTING ROW  (the fundamental layout unit)                         */
+/* ================================================================== */
+.mems-setting-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    font-size: 13px;
-    color: var(--mems-text);
-    min-height: 32px;
+    gap: 16px;
+    padding: var(--mems-pad-row);
+    margin: 0 -20px; /* stretch edgeless inside section body */
+    transition: background var(--mems-transition-fast);
+    border-radius: 0;
 }
 
-.mems-label-block {
+.mems-setting-row:hover {
+    background: rgba(255, 255, 255, 0.012);
+}
+
+/* Stacked variant — labels above inputs */
+.mems-setting-row-stack {
     flex-direction: column;
     align-items: stretch;
-    gap: 6px;
+    gap: 8px;
 }
 
-.mems-label > span:first-child {
-    flex-shrink: 0;
-    font-weight: 500;
+/* ================================================================== */
+/*  SETTING INFO  (label + description)                                */
+/* ================================================================== */
+.mems-setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
 }
 
-.mems-label em {
-    font-style: normal;
-    font-size: 11px;
+.mems-setting-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mems-text-label);
+    letter-spacing: -0.1px;
+}
+
+.mems-setting-desc {
+    font-size: 11.5px;
     color: var(--mems-text-dim);
+    line-height: 1.4;
 }
 
-.mems-label code {
+/* ================================================================== */
+/*  CUSTOM SWITCH  (toggle)                                            */
+/* ================================================================== */
+.mems-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.mems-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.mems-switch-slider {
+    width: 44px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    position: relative;
+    transition: background var(--mems-transition);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mems-switch-slider::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    top: 2px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform var(--mems-transition);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mems-switch input:checked + .mems-switch-slider {
+    background: var(--mems-primary);
+    border-color: var(--mems-primary);
+    box-shadow: 0 0 8px var(--mems-primary-glow);
+}
+
+.mems-switch input:checked + .mems-switch-slider::after {
+    transform: translateX(20px);
+}
+
+/* ================================================================== */
+/*  INPUTS  (number, text, password, select, textarea)                 */
+/* ================================================================== */
+.mems-input-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.mems-input-suffix {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--mems-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    min-width: 36px;
+}
+
+.mems-select,
+.mems-input-text,
+input[type="number"] {
+    padding: 7px 10px;
+    background: var(--mems-bg-input);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-xs);
+    color: var(--mems-text-bright);
+    font-size: 13px;
+    font-family: var(--mems-font);
+    transition: border-color var(--mems-transition-fast), box-shadow var(--mems-transition-fast);
+    min-width: 120px;
+}
+
+.mems-select {
+    min-width: 160px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b80' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+}
+
+.mems-input-text {
+    width: 240px;
+    max-width: 100%;
+}
+
+input[type="number"] {
+    width: 80px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.mems-select:focus,
+.mems-input-text:focus,
+input[type="number"]:focus {
+    outline: none;
+    border-color: var(--mems-border-focus);
+    box-shadow: 0 0 0 2px var(--mems-primary-soft);
+}
+
+/* Textarea */
+.mems-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--mems-bg-input);
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-xs);
+    color: var(--mems-text-bright);
+    font-size: 12.5px;
+    font-family: var(--mems-font-mono);
+    resize: vertical;
+    transition: border-color var(--mems-transition-fast), box-shadow var(--mems-transition-fast);
+}
+
+.mems-textarea:focus {
+    outline: none;
+    border-color: var(--mems-border-focus);
+    box-shadow: 0 0 0 2px var(--mems-primary-soft);
+}
+
+.mems-textarea::placeholder {
+    color: var(--mems-text-dim);
+    opacity: 0.6;
+}
+
+/* ================================================================== */
+/*  RANGE SLIDER                                                       */
+/* ================================================================== */
+.mems-range-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.mems-range-group input[type="range"] {
+    width: 130px;
+    height: 5px;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+.mems-range-group input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--mems-primary);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--mems-primary-glow);
+    transition: transform var(--mems-transition-fast);
+}
+
+.mems-range-group input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.mems-range-value {
     font-size: 12px;
-    background: var(--mems-primary-soft);
-    padding: 1px 6px;
-    border-radius: 4px;
+    font-weight: 600;
+    color: var(--mems-accent);
+    min-width: 32px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ================================================================== */
+/*  SEPARATOR  (thin line between groups of settings)                  */
+/* ================================================================== */
+.mems-separator {
+    height: 1px;
+    background: var(--mems-border);
+    margin: 2px 0;
+}
+
+/* ================================================================== */
+/*  FIELDSET  (grouped sub-settings)                                   */
+/* ================================================================== */
+.mems-fieldset {
+    border: 1px solid var(--mems-border);
+    border-radius: var(--mems-radius-sm);
+    padding: 0 12px 10px;
+    margin: 6px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.mems-fieldset legend {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--mems-text-dim);
+    padding: 0 8px;
+    margin-bottom: 2px;
+}
+
+/* ================================================================== */
+/*  CALLOUT  (info / warning / danger banners)                         */
+/* ================================================================== */
+.mems-callout {
+    padding: 10px 14px;
+    border-radius: var(--mems-radius-sm);
+    font-size: 12px;
+    line-height: 1.55;
+    margin: 2px 0 6px;
+}
+
+.mems-callout strong {
+    font-weight: 700;
+}
+
+.mems-callout-info {
+    background: var(--mems-accent-soft);
+    border: 1px solid rgba(0, 212, 170, 0.18);
     color: var(--mems-accent);
 }
 
-/* Inputs */
-.mems-label input[type="number"] {
-    width: 90px;
-    padding: 6px 10px;
-    background: var(--mems-bg-elevated);
-    border: 1px solid var(--mems-border);
-    border-radius: var(--mems-radius-sm);
-    color: var(--mems-text-bright);
-    font-size: 13px;
-    font-family: var(--mems-font);
-    text-align: right;
-    transition: border-color var(--mems-transition);
+.mems-callout-warning {
+    background: var(--mems-warning-soft);
+    border: 1px solid rgba(240, 160, 48, 0.18);
+    color: var(--mems-warning);
 }
 
-.mems-label input[type="number"]:focus {
-    outline: none;
-    border-color: var(--mems-primary);
-    box-shadow: 0 0 0 2px var(--mems-primary-soft);
+.mems-callout-danger {
+    background: var(--mems-danger-soft);
+    border: 1px solid rgba(255, 77, 106, 0.18);
+    color: var(--mems-danger);
 }
 
-.mems-label input[type="range"] {
-    flex: 1;
-    max-width: 160px;
-    accent-color: var(--mems-primary);
-    height: 6px;
+/* ================================================================== */
+/*  CONDITIONAL BLOCKS  (show/hide based on select/checkbox)            */
+/* ================================================================== */
+.mems-conditional {
+    display: none;
+    flex-direction: column;
 }
 
-.mems-label input[type="checkbox"] {
-    accent-color: var(--mems-primary);
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
+.mems-conditional.visible {
+    display: flex;
 }
 
-.mems-label select {
-    padding: 6px 10px;
-    background: var(--mems-bg-elevated);
-    border: 1px solid var(--mems-border);
-    border-radius: var(--mems-radius-sm);
-    color: var(--mems-text-bright);
-    font-size: 13px;
-    font-family: var(--mems-font);
-    cursor: pointer;
-    min-width: 150px;
-    transition: border-color var(--mems-transition);
+/* ================================================================== */
+/*  FOOTER                                                             */
+/* ================================================================== */
+.mems-settings-footer {
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--mems-border);
+    background: rgba(0, 0, 0, 0.18);
 }
 
-.mems-label select:focus {
-    outline: none;
-    border-color: var(--mems-primary);
-}
-
-.mems-label textarea {
-    width: 100%;
-    padding: 10px;
-    background: var(--mems-bg-elevated);
-    border: 1px solid var(--mems-border);
-    border-radius: var(--mems-radius-sm);
-    color: var(--mems-text-bright);
-    font-size: 12px;
-    font-family: var(--mems-font);
-    resize: vertical;
-    transition: border-color var(--mems-transition);
-    box-sizing: border-box;
-}
-
-.mems-label textarea:focus {
-    outline: none;
-    border-color: var(--mems-primary);
-    box-shadow: 0 0 0 2px var(--mems-primary-soft);
-}
-
-.mems-hint {
-    font-size: 11px;
-    color: var(--mems-text-dim);
-    margin-top: -4px;
-}
-
-/* Buttons */
+/* ================================================================== */
+/*  BUTTONS                                                            */
+/* ================================================================== */
 .mems-btn {
-    padding: 8px 16px;
+    padding: 9px 18px;
     border: none;
-    border-radius: var(--mems-radius-sm);
+    border-radius: var(--mems-radius-xs);
     font-size: 13px;
     font-weight: 600;
     font-family: var(--mems-font);
     cursor: pointer;
-    transition: all var(--mems-transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all var(--mems-transition-fast);
 }
 
 .mems-btn-primary {
     background: var(--mems-primary);
     color: #fff;
+    box-shadow: 0 0 0 0 var(--mems-primary-glow);
 }
 
 .mems-btn-primary:hover {
-    background: var(--mems-primary-hover);
+    background: #8d6fff;
+    box-shadow: 0 4px 16px var(--mems-primary-glow);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
 }
 
-.mems-btn-danger {
-    background: rgba(231, 76, 60, 0.15);
-    color: var(--mems-danger);
-    border: 1px solid transparent;
+.mems-btn-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--mems-text);
+    border: 1px solid var(--mems-border);
 }
 
-.mems-btn-danger:hover {
-    background: var(--mems-danger);
-    color: #fff;
-}
-
-.mems-btn-warning {
-    background: rgba(243, 156, 18, 0.15);
-    color: var(--mems-warning);
-    border: 1px solid transparent;
-}
-
-.mems-btn-warning:hover {
-    background: var(--mems-warning);
-    color: #fff;
-}
-
-/* Footer */
-.mems-settings-footer {
-    display: flex;
-    gap: 8px;
-    padding: 14px 20px;
-    border-top: 1px solid var(--mems-border);
-    background: rgba(0, 0, 0, 0.15);
+.mems-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: var(--mems-border-hover);
+    color: var(--mems-text-bright);
 }
 
 /* ================================================================== */
@@ -302,9 +565,9 @@
 /* ================================================================== */
 .mems-panel {
     position: fixed;
-    top: 60px;
+    top: 56px;
     bottom: 0;
-    width: 340px;
+    width: 350px;
     z-index: 9000;
     background: var(--mems-bg);
     border: 1px solid var(--mems-border);
@@ -325,63 +588,66 @@
     border-radius: 0 var(--mems-radius) var(--mems-radius) 0;
 }
 
-/* Panel header */
+/* Panel hidden */
+.mems-panel-hidden {
+    display: none !important;
+}
+
+/* ── Panel header ──────────────────────────────────────────────── */
 .mems-panel-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 14px;
-    background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(0, 206, 201, 0.06));
+    padding: 11px 14px;
+    background: linear-gradient(160deg, rgba(124, 92, 252, 0.16), rgba(0, 212, 170, 0.04));
     border-bottom: 1px solid var(--mems-border);
     flex-shrink: 0;
 }
 
 .mems-panel-title {
     flex: 1;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--mems-text-bright);
+    letter-spacing: -0.1px;
 }
 
 .mems-badge {
     background: var(--mems-primary);
     color: #fff;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     min-width: 22px;
     height: 22px;
     line-height: 22px;
     text-align: center;
     border-radius: 11px;
-    padding: 0 6px;
+    padding: 0 7px;
+    letter-spacing: 0.2px;
 }
 
 .mems-btn-icon {
     background: none;
     border: none;
     color: var(--mems-text-dim);
-    font-size: 16px;
+    font-size: 17px;
     cursor: pointer;
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--mems-transition);
+    transition: all var(--mems-transition-fast);
+    flex-shrink: 0;
 }
 
 .mems-btn-icon:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.07);
     color: var(--mems-text-bright);
 }
 
-/* Panel hidden state */
-.mems-panel-hidden {
-    display: none !important;
-}
-
-/* Panel drag handle */
+/* Drag handle */
 #mems_panel_drag_handle {
     cursor: grab;
     user-select: none;
@@ -392,9 +658,9 @@
 }
 
 .mems-panel-dragging {
-    opacity: 0.92;
+    opacity: 0.9;
     transition: none !important;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
 }
 
 .mems-panel-drag-icon {
@@ -409,13 +675,13 @@
     cursor: grab;
 }
 
-/* Close button — red on hover */
+/* Close button — red tint on hover */
 .mems-btn-close:hover {
-    background: rgba(231, 76, 60, 0.2) !important;
+    background: var(--mems-danger-soft) !important;
     color: var(--mems-danger) !important;
 }
 
-/* Floating reopen button */
+/* ── Floating reopen button ─────────────────────────────────────── */
 .mems-panel-reopen {
     position: fixed;
     width: 44px;
@@ -427,18 +693,18 @@
     font-size: 20px;
     cursor: pointer;
     z-index: 9100;
-    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.45);
+    box-shadow: 0 4px 20px var(--mems-primary-glow);
     display: none;
     align-items: center;
     justify-content: center;
     transition: all var(--mems-transition);
-    top: 70px;
+    top: 66px;
 }
 
 .mems-panel-reopen:hover {
-    background: var(--mems-primary-hover);
-    transform: scale(1.1);
-    box-shadow: 0 6px 28px rgba(108, 92, 231, 0.6);
+    background: #8d6fff;
+    transform: scale(1.08);
+    box-shadow: 0 6px 28px rgba(124, 92, 252, 0.55);
 }
 
 .mems-panel-reopen.mems-panel-right {
@@ -453,7 +719,7 @@
     display: flex;
 }
 
-/* Panel body */
+/* ── Panel body  ────────────────────────────────────────────────── */
 .mems-panel-body {
     flex: 1;
     overflow-y: auto;
@@ -471,14 +737,15 @@
     background: var(--mems-bg-elevated);
     border: 1px solid var(--mems-border);
     border-radius: var(--mems-radius-sm);
-    padding: 10px;
+    padding: 10px 12px;
     cursor: default;
-    transition: border-color var(--mems-transition), background var(--mems-transition);
+    transition: border-color var(--mems-transition-fast), background var(--mems-transition-fast);
+    animation: mems-fade-in 0.25s ease-out;
 }
 
 .mems-memory-item:hover {
     border-color: var(--mems-border-hover);
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.025);
 }
 
 .mems-memory-score {
@@ -486,12 +753,11 @@
     color: var(--mems-warning);
     letter-spacing: 1px;
     margin-bottom: 4px;
-    opacity: calc(0.3 + var(--score, 0.5) * 0.7);
 }
 
 .mems-memory-text {
     font-size: 12px;
-    line-height: 1.5;
+    line-height: 1.55;
     color: var(--mems-text);
     word-break: break-word;
 }
@@ -500,7 +766,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 6px;
+    margin-top: 7px;
     font-size: 10px;
     color: var(--mems-text-dim);
 }
@@ -511,27 +777,28 @@
     color: var(--mems-text-dim);
     cursor: pointer;
     font-size: 12px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    transition: all var(--mems-transition);
+    padding: 3px 8px;
+    border-radius: var(--mems-radius-xs);
+    transition: all var(--mems-transition-fast);
 }
 
 .mems-btn-delete:hover {
-    background: rgba(231, 76, 60, 0.2);
+    background: var(--mems-danger-soft);
     color: var(--mems-danger);
 }
 
+/* Empty state */
 .mems-empty {
     text-align: center;
-    padding: 40px 20px;
+    padding: 44px 20px;
     font-size: 13px;
     color: var(--mems-text-dim);
     font-style: italic;
 }
 
-/* Panel footer */
+/* ── Panel footer ───────────────────────────────────────────────── */
 .mems-panel-footer {
-    padding: 8px 14px;
+    padding: 8px 12px;
     border-top: 1px solid var(--mems-border);
     flex-shrink: 0;
 }
@@ -539,23 +806,50 @@
 .mems-search {
     width: 100%;
     padding: 8px 12px;
-    background: var(--mems-bg-elevated);
+    background: var(--mems-bg-input);
     border: 1px solid var(--mems-border);
-    border-radius: var(--mems-radius-sm);
+    border-radius: var(--mems-radius-xs);
     color: var(--mems-text-bright);
     font-size: 12px;
     font-family: var(--mems-font);
-    box-sizing: border-box;
-    transition: border-color var(--mems-transition);
+    transition: border-color var(--mems-transition-fast), box-shadow var(--mems-transition-fast);
 }
 
 .mems-search:focus {
     outline: none;
-    border-color: var(--mems-primary);
+    border-color: var(--mems-border-focus);
+    box-shadow: 0 0 0 2px var(--mems-primary-soft);
 }
 
 .mems-search::placeholder {
     color: var(--mems-text-dim);
+}
+
+/* ================================================================== */
+/*  ANIMATIONS                                                         */
+/* ================================================================== */
+@keyframes mems-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.mems-pulse {
+    animation: mems-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes mems-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
+}
+
+/* ================================================================== */
+/*  INPUT PLACEHOLDERS                                                 */
+/* ================================================================== */
+.mems-input-text::placeholder,
+input[type="number"]::placeholder {
+    color: var(--mems-text-dim);
+    opacity: 0.5;
+    font-family: var(--mems-font);
 }
 
 /* ================================================================== */
@@ -564,32 +858,35 @@
 @media (max-width: 768px) {
     .mems-panel {
         width: 100%;
-        max-width: 320px;
+        max-width: 300px;
     }
 
     .mems-settings-body {
-        max-height: 50vh;
+        max-height: 48vh;
     }
 
-    .mems-label {
+    .mems-setting-row {
         flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .mems-label input[type="number"] {
-        width: 70px;
+    .mems-select,
+    .mems-input-text {
+        min-width: 120px;
+        width: auto;
     }
 
-    .mems-label input[type="range"] {
-        max-width: 100px;
+    .mems-range-group input[type="range"] {
+        width: 80px;
     }
 }
 
 /* ================================================================== */
-/*  SCROLLBAR STYLING                                                  */
+/*  SCROLLBARS                                                         */
 /* ================================================================== */
 .mems-settings-body::-webkit-scrollbar,
 .mems-panel-body::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
 }
 
 .mems-settings-body::-webkit-scrollbar-track,
@@ -599,129 +896,11 @@
 
 .mems-settings-body::-webkit-scrollbar-thumb,
 .mems-panel-body::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.07);
     border-radius: 3px;
 }
 
 .mems-settings-body::-webkit-scrollbar-thumb:hover,
 .mems-panel-body::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-/* ================================================================== */
-/*  LOADING / ACTIVE STATES                                             */
-/* ================================================================== */
-.mems-summarizing {
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-.mems-pulse {
-    animation: mems-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes mems-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* ================================================================== */
-/*  FADE-IN ANIMATION                                                  */
-/* ================================================================== */
-@keyframes mems-fade-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.mems-memory-item {
-    animation: mems-fade-in 0.25s ease-out;
-}
-
-/* ================================================================== */
-/*  CALL OUT  /  INFO BANNER                                            */
-/* ================================================================== */
-.mems-callout {
-    padding: 10px 14px;
-    border-radius: var(--mems-radius-sm);
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-.mems-callout-info {
-    background: rgba(0, 206, 201, 0.08);
-    border: 1px solid rgba(0, 206, 201, 0.2);
-    color: var(--mems-accent);
-}
-
-.mems-callout-warning {
-    background: rgba(243, 156, 18, 0.08);
-    border: 1px solid rgba(243, 156, 18, 0.2);
-    color: var(--mems-warning);
-}
-
-.mems-callout-danger {
-    background: rgba(231, 76, 60, 0.08);
-    border: 1px solid rgba(231, 76, 60, 0.2);
-    color: var(--mems-danger);
-}
-
-/* ================================================================== */
-/*  FIELDSETS  (grouped settings)                                       */
-/* ================================================================== */
-.mems-fieldset {
-    border: 1px solid var(--mems-border);
-    border-radius: var(--mems-radius-sm);
-    padding: 12px 14px;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.mems-fieldset legend {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--mems-text-dim);
-    padding: 0 6px;
-}
-
-/* ================================================================== */
-/*  CONDITIONAL BLOCKS  (show/hide based on select value)               */
-/* ================================================================== */
-.mems-conditional {
-    display: none;
-    flex-direction: column;
-    gap: 10px;
-    padding-left: 8px;
-    border-left: 2px solid var(--mems-primary-soft);
-}
-
-.mems-conditional.visible {
-    display: flex;
-}
-
-/* ================================================================== */
-/*  TEXT / PASSWORD INPUTS                                              */
-/* ================================================================== */
-.mems-label input[type="text"],
-.mems-label input[type="password"] {
-    flex: 1;
-    max-width: 300px;
-    padding: 6px 10px;
-    background: var(--mems-bg-elevated);
-    border: 1px solid var(--mems-border);
-    border-radius: var(--mems-radius-sm);
-    color: var(--mems-text-bright);
-    font-size: 13px;
-    font-family: var(--mems-font);
-    transition: border-color var(--mems-transition);
-}
-
-.mems-label input[type="text"]:focus,
-.mems-label input[type="password"]:focus {
-    outline: none;
-    border-color: var(--mems-primary);
-    box-shadow: 0 0 0 2px var(--mems-primary-soft);
+    background: rgba(255, 255, 255, 0.14);
 }
