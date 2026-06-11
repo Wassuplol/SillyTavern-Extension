@@ -1367,7 +1367,7 @@ class MemsMemoriesExtension {
         };
 
         const settingsHtml = await renderExtensionTemplateAsync(
-            'third-party/MemsMemories',
+            'third-party/SillyTavern-Extension',
             'settings',
             templateVars
         );
