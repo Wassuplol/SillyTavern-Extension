@@ -376,6 +376,83 @@
     color: var(--mems-text-bright);
 }
 
+/* Panel hidden state */
+.mems-panel-hidden {
+    display: none !important;
+}
+
+/* Panel drag handle */
+#mems_panel_drag_handle {
+    cursor: grab;
+    user-select: none;
+}
+
+#mems_panel_drag_handle:active {
+    cursor: grabbing;
+}
+
+.mems-panel-dragging {
+    opacity: 0.92;
+    transition: none !important;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+.mems-panel-drag-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    color: var(--mems-text-dim);
+    font-size: 14px;
+    letter-spacing: 2px;
+    cursor: grab;
+}
+
+/* Close button — red on hover */
+.mems-btn-close:hover {
+    background: rgba(231, 76, 60, 0.2) !important;
+    color: var(--mems-danger) !important;
+}
+
+/* Floating reopen button */
+.mems-panel-reopen {
+    position: fixed;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--mems-primary);
+    color: #fff;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 9100;
+    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--mems-transition);
+    top: 70px;
+}
+
+.mems-panel-reopen:hover {
+    background: var(--mems-primary-hover);
+    transform: scale(1.1);
+    box-shadow: 0 6px 28px rgba(108, 92, 231, 0.6);
+}
+
+.mems-panel-reopen.mems-panel-right {
+    right: 16px;
+}
+
+.mems-panel-reopen.mems-panel-left {
+    left: 16px;
+}
+
+.mems-panel-reopen-visible {
+    display: flex;
+}
+
 /* Panel body */
 .mems-panel-body {
     flex: 1;

@@ -1438,11 +1438,13 @@ class MemsMemoriesExtension {
 
         const html = `
         <div id="mems_memories_panel" class="${sideClass} mems-panel">
-            <div class="mems-panel-header">
+            <div id="mems_panel_drag_handle" class="mems-panel-header" title="Drag to move">
+                <span class="mems-panel-drag-icon">⠿</span>
                 <span class="mems-panel-title">🧠 Mem's Memories</span>
                 <span id="mems_memory_count" class="mems-badge">0</span>
                 <button id="mems_panel_refresh" class="mems-btn-icon" title="Refresh">↻</button>
-                <button id="mems_panel_toggle" class="mems-btn-icon" title="Minimize">–</button>
+                <button id="mems_panel_minimize" class="mems-btn-icon" title="Minimize">–</button>
+                <button id="mems_panel_close" class="mems-btn-icon mems-btn-close" title="Close panel">✕</button>
             </div>
             <div class="mems-panel-body">
                 <div id="mems_memory_list" class="mems-memory-list"></div>
@@ -1450,19 +1452,42 @@ class MemsMemoriesExtension {
             <div class="mems-panel-footer">
                 <input type="text" id="mems_search_input" class="mems-search" placeholder="Search memories...">
             </div>
-        </div>`;
+        </div>
+        <button id="mems_panel_reopen" class="mems-panel-reopen ${sideClass}" title="Open Mem's Memories">🧠</button>`;
 
         $('body').append(html);
         this._panelEl = $('#mems_memories_panel');
+        this._reopenBtn = $('#mems_panel_reopen');
 
-        // Events
-        $('#mems_panel_toggle').on('click', () => {
-            $('#mems_memory_list').parent().slideToggle(150);
+        // Close button — hide panel, show floating reopen button
+        $('#mems_panel_close').on('click', () => {
+            this._panelEl.addClass('mems-panel-hidden');
+            this._reopenBtn.addClass('mems-panel-reopen-visible');
+        });
+
+        // Reopen button — show panel, hide floating button
+        this._reopenBtn.on('click', () => {
+            this._panelEl.removeClass('mems-panel-hidden');
+            this._reopenBtn.removeClass('mems-panel-reopen-visible');
+        });
+
+        // Minimize — collapse body only (panel stays visible as header)
+        $('#mems_panel_minimize').on('click', () => {
+            const body = this._panelEl.find('.mems-panel-body');
+            const footer = this._panelEl.find('.mems-panel-footer');
+            body.slideToggle(150);
+            footer.slideToggle(150);
+            const btn = $('#mems_panel_minimize');
+            btn.text(btn.text() === '–' ? '+' : '–');
+            btn.attr('title', btn.text() === '+' ? 'Expand' : 'Minimize');
         });
 
         $('#mems_panel_refresh').on('click', () => {
             this._refreshMemoryPanel();
         });
+
+        // ── Drag to move ──
+        this._setupPanelDrag();
 
         let searchTimeout;
         $('#mems_search_input').on('input', function () {
@@ -1477,6 +1502,75 @@ class MemsMemoriesExtension {
 
         // Auto-refresh every 30 seconds
         setInterval(() => this._refreshMemoryPanel(), 30000);
+    }
+
+    _setupPanelDrag() {
+        const handle = document.getElementById('mems_panel_drag_handle');
+        const panel = document.getElementById('mems_memories_panel');
+        if (!handle || !panel) return;
+
+        let isDragging = false;
+        let startX, startY, startLeft, startTop;
+        const self = this;
+
+        handle.addEventListener('mousedown', (e) => {
+            // Don't drag when clicking buttons inside the header
+            if (e.target.tagName === 'BUTTON') return;
+
+            isDragging = true;
+            panel.classList.add('mems-panel-dragging');
+
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = panel.offsetLeft;
+            startTop = panel.offsetTop;
+
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            let newLeft = startLeft + dx;
+            let newTop = startTop + dy;
+
+            // Clamp to viewport
+            const maxLeft = window.innerWidth - panel.offsetWidth;
+            const maxTop = window.innerHeight - panel.offsetHeight;
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            newTop = Math.max(0, Math.min(newTop, maxTop));
+
+            panel.style.left = newLeft + 'px';
+            panel.style.top = newTop + 'px';
+            panel.style.right = 'auto';
+            panel.style.bottom = 'auto';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            panel.classList.remove('mems-panel-dragging');
+
+            // Persist position in settings
+            const pos = self.settings.get('display.panelPosition');
+            if (pos) {
+                self.settings.set('display.panelLeft', panel.style.left);
+                self.settings.set('display.panelTop', panel.style.top);
+            }
+        });
+
+        // Restore saved position
+        const savedLeft = this.settings.get('display.panelLeft');
+        const savedTop = this.settings.get('display.panelTop');
+        if (savedLeft && savedTop) {
+            panel.style.left = savedLeft;
+            panel.style.top = savedTop;
+            panel.style.right = 'auto';
+            panel.style.bottom = 'auto';
+        }
     }
 
     async _refreshMemoryPanel(searchTerm) {
